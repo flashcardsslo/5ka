@@ -1,0 +1,1811 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Geografske Flashcards</title>
+  <style>
+    :root {
+      --bg-1: #f6efe3;
+      --bg-2: #d9efe8;
+      --panel: rgba(255, 252, 247, 0.88);
+      --panel-strong: rgba(255, 255, 255, 0.98);
+      --text: #17313a;
+      --muted: #5f747c;
+      --accent: #0f8b8d;
+      --accent-strong: #0b6e70;
+      --accent-soft: rgba(15, 139, 141, 0.14);
+      --shadow: 0 28px 70px rgba(23, 49, 58, 0.18);
+      --border: rgba(23, 49, 58, 0.1);
+      --good: #1f9d6c;
+      --danger: #b25555;
+      --font-display: "Trebuchet MS", "Avenir Next", "Segoe UI", sans-serif;
+      --font-body: "Segoe UI", "Calibri", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font-body);
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.7), transparent 30%),
+        radial-gradient(circle at right 15% bottom 10%, rgba(15, 139, 141, 0.14), transparent 25%),
+        linear-gradient(135deg, var(--bg-1), var(--bg-2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+    }
+
+    .shell {
+      width: min(1120px, 100%);
+      max-height: calc(100vh - 28px);
+      display: grid;
+      grid-template-columns: 300px minmax(0, 1fr);
+      gap: 16px;
+      align-items: stretch;
+    }
+
+    .panel,
+    .card-wrap {
+      backdrop-filter: blur(18px);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+
+    .panel {
+      background: var(--panel);
+      border-radius: 26px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow: auto;
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 0.72rem;
+      color: var(--accent-strong);
+      font-weight: 800;
+    }
+
+    h1 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: clamp(1.8rem, 2.3vw, 2.55rem);
+      line-height: 0.98;
+    }
+
+    .lead {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.35;
+      font-size: 0.9rem;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .metric {
+      background: rgba(255, 255, 255, 0.62);
+      border-radius: 16px;
+      padding: 10px 11px;
+      border: 1px solid rgba(255, 255, 255, 0.68);
+    }
+
+    .metric-label {
+      display: block;
+      color: var(--muted);
+      font-size: 0.78rem;
+      margin-bottom: 5px;
+    }
+
+    .metric strong {
+      font-size: 1.08rem;
+      font-family: var(--font-display);
+    }
+
+    .metric strong.good-text {
+      color: var(--good);
+    }
+
+    .metric strong.danger-text {
+      color: var(--danger);
+    }
+
+    .progress-block {
+      display: grid;
+      gap: 6px;
+    }
+
+    .progress-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 0.95rem;
+      color: var(--muted);
+    }
+
+    .progress-track {
+      height: 12px;
+      background: rgba(23, 49, 58, 0.08);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #ef7d57, #0f8b8d);
+      transition: width 220ms ease;
+    }
+
+    .control {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 10px 12px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(255, 255, 255, 0.65);
+    }
+
+    .control-copy {
+      display: grid;
+      gap: 4px;
+    }
+
+    .control-title {
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    .control-subtitle {
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .switch {
+      position: relative;
+      display: inline-flex;
+      width: 62px;
+      height: 36px;
+      flex-shrink: 0;
+    }
+
+    .switch input {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .switch-track {
+      width: 100%;
+      height: 100%;
+      background: rgba(23, 49, 58, 0.18);
+      border-radius: 999px;
+      transition: background 180ms ease;
+    }
+
+    .switch-thumb {
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      width: 28px;
+      height: 28px;
+      background: #fff;
+      border-radius: 50%;
+      box-shadow: 0 8px 20px rgba(23, 49, 58, 0.18);
+      transition: transform 180ms ease;
+    }
+
+    .switch input:checked + .switch-track {
+      background: linear-gradient(135deg, #ef7d57, #0f8b8d);
+    }
+
+    .switch input:checked ~ .switch-thumb {
+      transform: translateX(26px);
+    }
+
+    .action-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .single-action {
+      display: grid;
+      gap: 10px;
+    }
+
+    .micro-actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 16px;
+      padding: 10px 12px;
+      font: inherit;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .primary {
+      background: linear-gradient(135deg, #ef7d57, #0f8b8d);
+      color: white;
+      box-shadow: 0 14px 30px rgba(15, 139, 141, 0.24);
+    }
+
+    .secondary {
+      background: rgba(23, 49, 58, 0.07);
+      color: var(--text);
+    }
+
+    .success {
+      background: linear-gradient(135deg, #1f9d6c, #0f8b8d);
+      color: white;
+      box-shadow: 0 14px 30px rgba(31, 157, 108, 0.2);
+    }
+
+    .danger {
+      background: linear-gradient(135deg, #d86c5f, #b25555);
+      color: white;
+      box-shadow: 0 14px 30px rgba(178, 85, 85, 0.22);
+    }
+
+    .ghost {
+      background: rgba(255, 255, 255, 0.7);
+      color: var(--text);
+      border: 1px solid rgba(23, 49, 58, 0.08);
+    }
+
+    .status {
+      min-height: 44px;
+      border-radius: 16px;
+      padding: 9px 11px;
+      background: rgba(255, 255, 255, 0.72);
+      color: var(--muted);
+      font-size: 0.87rem;
+      line-height: 1.38;
+      border: 1px solid rgba(255, 255, 255, 0.7);
+    }
+
+    .status.error {
+      color: var(--danger);
+      background: rgba(178, 85, 85, 0.08);
+      border-color: rgba(178, 85, 85, 0.14);
+    }
+
+    .status.success {
+      color: var(--good);
+      background: rgba(31, 157, 108, 0.08);
+      border-color: rgba(31, 157, 108, 0.14);
+    }
+
+    .card-wrap {
+      background: var(--panel-strong);
+      border-radius: 28px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 0;
+      overflow: auto;
+    }
+
+    .card-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 999px;
+      padding: 8px 12px;
+      background: var(--accent-soft);
+      color: var(--accent-strong);
+      font-weight: 700;
+      font-size: 0.84rem;
+    }
+
+    .tag.success-tag {
+      background: rgba(31, 157, 108, 0.12);
+      color: var(--good);
+    }
+
+    .tag.danger-tag {
+      background: rgba(178, 85, 85, 0.12);
+      color: var(--danger);
+    }
+
+    .shortcut {
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
+
+    .flashcard {
+      position: relative;
+      flex: 1;
+      min-height: 360px;
+      perspective: 1800px;
+    }
+
+    .flashcard.animate-next {
+      animation: cardSwapNext 280ms cubic-bezier(0.2, 0.75, 0.2, 1);
+    }
+
+    .flashcard.animate-prev {
+      animation: cardSwapPrev 280ms cubic-bezier(0.2, 0.75, 0.2, 1);
+    }
+
+    .flashcard.animate-reset {
+      animation: cardSwapReset 320ms cubic-bezier(0.2, 0.75, 0.2, 1);
+    }
+
+    .flashcard-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transition: transform 580ms cubic-bezier(0.2, 0.75, 0.2, 1);
+      transform-style: preserve-3d;
+    }
+
+    @keyframes cardSwapNext {
+      0% {
+        opacity: 0;
+        transform: translateX(34px) scale(0.985);
+      }
+
+      100% {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+      }
+    }
+
+    @keyframes cardSwapPrev {
+      0% {
+        opacity: 0;
+        transform: translateX(-34px) scale(0.985);
+      }
+
+      100% {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+      }
+    }
+
+    @keyframes cardSwapReset {
+      0% {
+        opacity: 0;
+        transform: translateY(16px) scale(0.975);
+      }
+
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .flashcard.is-flipped .flashcard-inner {
+      transform: rotateY(180deg);
+    }
+
+    .face {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      border-radius: 24px;
+      padding: clamp(16px, 2.4vw, 24px);
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr);
+      gap: 14px;
+    }
+
+    .front {
+      background:
+        linear-gradient(160deg, rgba(255, 255, 255, 0.96), rgba(217, 239, 232, 0.86)),
+        linear-gradient(135deg, rgba(239, 125, 87, 0.14), transparent);
+      border: 1px solid rgba(15, 139, 141, 0.12);
+    }
+
+    .back {
+      transform: rotateY(180deg);
+      background:
+        linear-gradient(150deg, rgba(255, 255, 255, 0.98), rgba(246, 239, 227, 0.88)),
+        linear-gradient(135deg, rgba(15, 139, 141, 0.12), transparent);
+      border: 1px solid rgba(239, 125, 87, 0.16);
+    }
+
+    .face::before,
+    .face::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(0.5px);
+      opacity: 0.72;
+    }
+
+    .face::before {
+      width: 180px;
+      height: 180px;
+      top: -50px;
+      right: -30px;
+      background: radial-gradient(circle, rgba(15, 139, 141, 0.16), transparent 68%);
+    }
+
+    .face::after {
+      width: 220px;
+      height: 220px;
+      bottom: -80px;
+      left: -60px;
+      background: radial-gradient(circle, rgba(239, 125, 87, 0.14), transparent 70%);
+    }
+
+    .face-top {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .face-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 999px;
+      padding: 9px 14px;
+      font-size: 0.82rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 800;
+    }
+
+    .front .face-label {
+      background: rgba(15, 139, 141, 0.12);
+      color: var(--accent-strong);
+    }
+
+    .back .face-label {
+      background: rgba(239, 125, 87, 0.14);
+      color: #b85a34;
+    }
+
+    .theme-pill {
+      position: relative;
+      z-index: 1;
+      max-width: 100%;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.72);
+      padding: 8px 12px;
+      font-size: 0.82rem;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .content {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      align-content: start;
+      gap: 14px;
+    }
+
+    .question,
+    .answer {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: clamp(1.45rem, 2.1vw, 2.25rem);
+      line-height: 1.04;
+      max-width: 18ch;
+    }
+
+    .hint-block {
+      max-width: 70ch;
+      border-left: 3px solid rgba(15, 139, 141, 0.28);
+      padding-left: 14px;
+    }
+
+    .hint-label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .hint-text {
+      margin: 0;
+      font-size: 0.84rem;
+      color: var(--muted);
+      line-height: 1.42;
+    }
+
+    .answer-copy {
+      max-width: 75ch;
+      margin: 0;
+      line-height: 1.52;
+      font-size: clamp(0.9rem, 1vw, 0.98rem);
+      white-space: pre-wrap;
+    }
+
+    .recap-block {
+      max-width: 75ch;
+      padding: 10px 12px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.62);
+      border: 1px solid rgba(23, 49, 58, 0.08);
+    }
+
+    .recap-label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 0.74rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .recap-question {
+      margin: 0;
+      font-size: 0.92rem;
+      line-height: 1.4;
+      color: var(--text);
+    }
+
+    .visual {
+      position: relative;
+      z-index: 1;
+      align-self: end;
+      width: min(100%, 420px);
+      border-radius: 24px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(23, 49, 58, 0.08);
+      box-shadow: 0 16px 40px rgba(23, 49, 58, 0.12);
+      display: none;
+    }
+
+    .visual.is-visible {
+      display: block;
+    }
+
+    .visual img {
+      display: block;
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+    }
+
+    .visual figcaption {
+      padding: 12px 14px;
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.4;
+    }
+
+    .footer-actions {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px;
+    }
+
+    .empty-state {
+      display: none;
+      min-height: 540px;
+      border-radius: 30px;
+      background: rgba(23, 49, 58, 0.04);
+      border: 1px dashed rgba(23, 49, 58, 0.14);
+      padding: 28px;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .empty-state.is-visible {
+      display: flex;
+    }
+
+    .session-end {
+      display: none;
+      min-height: 360px;
+      border-radius: 24px;
+      background:
+        linear-gradient(160deg, rgba(255, 255, 255, 0.96), rgba(217, 239, 232, 0.84)),
+        linear-gradient(135deg, rgba(239, 125, 87, 0.14), transparent);
+      border: 1px solid rgba(15, 139, 141, 0.12);
+      padding: 24px;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .session-end.is-visible {
+      display: flex;
+    }
+
+    .session-end-inner {
+      max-width: 560px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .session-end h2 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: clamp(1.6rem, 2.2vw, 2.2rem);
+      line-height: 1.05;
+    }
+
+    .session-end p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .round-mini-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
+      text-align: left;
+    }
+
+    .round-mini-stat {
+      padding: 12px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(23, 49, 58, 0.08);
+    }
+
+    .round-mini-stat span {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+
+    .round-mini-stat strong {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+    }
+
+    .round-graph {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(56px, 1fr));
+      align-items: end;
+      gap: 10px;
+      min-height: 170px;
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.62);
+      border: 1px solid rgba(23, 49, 58, 0.08);
+    }
+
+    .graph-col {
+      display: grid;
+      justify-items: center;
+      gap: 8px;
+    }
+
+    .graph-score {
+      font-size: 0.76rem;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .graph-bar-wrap {
+      width: 100%;
+      min-height: 110px;
+      display: flex;
+      align-items: end;
+    }
+
+    .graph-bar {
+      width: 100%;
+      min-height: 10px;
+      border-radius: 14px 14px 8px 8px;
+      background: linear-gradient(180deg, #0f8b8d, #ef7d57);
+      box-shadow: 0 10px 24px rgba(15, 139, 141, 0.18);
+    }
+
+    .graph-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .round-history {
+      display: grid;
+      gap: 8px;
+      text-align: left;
+    }
+
+    .history-item {
+      display: grid;
+      gap: 4px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(23, 49, 58, 0.08);
+    }
+
+    .history-title {
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .history-copy {
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+
+    .session-actions {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background: rgba(10, 22, 28, 0.38);
+      backdrop-filter: blur(10px);
+      z-index: 40;
+    }
+
+    .modal-overlay.is-visible {
+      display: flex;
+    }
+
+    .modal-card {
+      width: min(460px, 100%);
+      border-radius: 24px;
+      padding: 22px;
+      background: rgba(255, 252, 247, 0.98);
+      border: 1px solid rgba(23, 49, 58, 0.1);
+      box-shadow: 0 28px 70px rgba(23, 49, 58, 0.22);
+      display: grid;
+      gap: 14px;
+    }
+
+    .modal-card h3 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: 1.45rem;
+    }
+
+    .modal-card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .modal-actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    @media (max-width: 980px) {
+      .shell {
+        grid-template-columns: 1fr;
+        max-height: none;
+      }
+
+      .card-wrap {
+        min-height: auto;
+        overflow: visible;
+      }
+
+      .panel {
+        overflow: visible;
+      }
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 14px;
+      }
+
+      .panel,
+      .card-wrap {
+        padding: 18px;
+        border-radius: 24px;
+      }
+
+      .metrics,
+      .action-grid,
+      .micro-actions,
+      .footer-actions {
+        grid-template-columns: 1fr;
+      }
+
+      .flashcard {
+        min-height: 500px;
+      }
+
+      .question,
+      .answer {
+        max-width: none;
+      }
+
+      .shortcut {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <aside class="panel">
+      <div>
+        <p class="eyebrow">Geografija</p>
+        <h1>Učenje s flashcardi</h1>
+        <p class="lead">
+          Aplikacija bere kartice iz datoteke <strong>geografija.json</strong>, baza pa ostane ves čas nespremenjena.
+        </p>
+      </div>
+
+      <section class="metrics" aria-label="Povzetek kompleta">
+        <article class="metric">
+          <span class="metric-label">Skupaj kartic</span>
+          <strong id="totalCards">0</strong>
+        </article>
+        <article class="metric">
+          <span class="metric-label">Trenutna kartica</span>
+          <strong id="currentCard">0 / 0</strong>
+        </article>
+        <article class="metric">
+          <span class="metric-label">Znam</span>
+          <strong class="good-text" id="knownCards">0</strong>
+        </article>
+        <article class="metric">
+          <span class="metric-label">Ne znam</span>
+          <strong class="danger-text" id="unknownCards">0</strong>
+        </article>
+        <article class="metric">
+          <span class="metric-label">Uspešnost</span>
+          <strong id="successRate">0%</strong>
+        </article>
+        <article class="metric">
+          <span class="metric-label">Še odprtih</span>
+          <strong id="remainingCards">0</strong>
+        </article>
+        <article class="metric">
+          <span class="metric-label">Če vse zgrešiš</span>
+          <strong id="worstCaseRate">0%</strong>
+        </article>
+        <article class="metric">
+          <span class="metric-label">Povp. čas / kartico</span>
+          <strong id="avgCardTime">0.0 s</strong>
+        </article>
+      </section>
+
+      <section class="progress-block" aria-label="Napredek">
+        <div class="progress-row">
+          <span>Napredek</span>
+          <strong id="progressText">0%</strong>
+        </div>
+        <div class="progress-track" aria-hidden="true">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+      </section>
+
+      <section class="control" aria-label="Mešanje kartic">
+        <div class="control-copy">
+          <span class="control-title">Mešaj kartice</span>
+          <span class="control-subtitle">Premešaj samo, ko je stikalo vključeno.</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="shuffleToggle" aria-label="Vključi mešanje kartic">
+          <span class="switch-track"></span>
+          <span class="switch-thumb"></span>
+        </label>
+      </section>
+
+      <section class="action-grid">
+        <button class="primary" id="flipButton" type="button">Pokaži odgovor</button>
+        <button class="ghost" id="restartButton" type="button">Začni znova</button>
+      </section>
+
+      <section class="action-grid">
+        <button class="secondary" id="prevButton" type="button">Prejšnja</button>
+        <button class="secondary" id="nextButton" type="button">Naslednja</button>
+      </section>
+
+      <section class="single-action">
+        <button class="ghost" id="jumpUnknownButton" type="button">Prva neznana</button>
+      </section>
+
+      <section class="micro-actions">
+        <button class="ghost" id="fullscreenButton" type="button">Celozaslonsko</button>
+        <button class="ghost hidden" id="fileLoadButton" type="button">Ročno naloži geografija.json</button>
+      </section>
+
+      <section class="single-action">
+        <input class="hidden" id="fileInput" type="file" accept=".json,application/json">
+      </section>
+
+      <div class="status" id="statusMessage" role="status" aria-live="polite">
+        Nalagam bazo vprašanj iz datoteke...
+      </div>
+    </aside>
+
+    <section class="card-wrap">
+      <div class="card-toolbar">
+        <span class="tag" id="modeTag">Originalni vrstni red</span>
+        <span class="tag" id="answerStateTag">Še neocenjeno</span>
+        <span class="shortcut">Preslednica: odgovor, levo/desno: kartica, gor: znam, dol: ne znam</span>
+      </div>
+
+      <div class="flashcard" id="flashcard">
+        <div class="flashcard-inner">
+          <article class="face front">
+            <div class="face-top">
+              <span class="face-label">Vprašanje</span>
+              <span class="theme-pill" id="themeFront">Tema</span>
+            </div>
+
+            <div class="content">
+              <h2 class="question" id="questionText">Nalagam kartice...</h2>
+              <div class="hint-block">
+                <span class="hint-label">Namig</span>
+                <p class="hint-text" id="hintText">Namig se prikaže tukaj v manjši pisavi.</p>
+              </div>
+            </div>
+
+            <figure class="visual" id="frontVisual">
+              <img id="frontImage" alt="">
+              <figcaption id="frontCaption"></figcaption>
+            </figure>
+          </article>
+
+          <article class="face back">
+            <div class="face-top">
+              <span class="face-label">Odgovor</span>
+              <span class="theme-pill" id="themeBack">Tema</span>
+            </div>
+
+            <div class="content">
+              <h2 class="answer" id="answerTitle">Rešitev</h2>
+              <p class="answer-copy" id="answerText">Odgovor se prikaže po obratu kartice.</p>
+              <div class="recap-block">
+                <span class="recap-label">Vprašanje</span>
+                <p class="recap-question" id="backQuestionText">Vprašanje se prikaže tudi tukaj.</p>
+              </div>
+            </div>
+
+            <figure class="visual" id="backVisual">
+              <img id="backImage" alt="">
+              <figcaption id="backCaption"></figcaption>
+            </figure>
+          </article>
+        </div>
+      </div>
+
+      <div class="empty-state" id="emptyState">
+        V bazi ni bilo mogoče najti kartic. Preveri, da je datoteka <strong>geografija.json</strong> v isti mapi kot ta HTML datoteka.
+      </div>
+
+      <section class="session-end" id="sessionEnd">
+        <div class="session-end-inner">
+          <span class="tag" id="sessionEndTag">Konec kroga</span>
+          <h2 id="sessionEndTitle">Krog je zaključen.</h2>
+          <p id="sessionEndText">Tukaj bo prikazan povzetek in možnost za nadaljevanje.</p>
+          <div class="round-mini-stats">
+            <article class="round-mini-stat">
+              <span>Zadnji krog</span>
+              <strong id="lastRoundRate">0%</strong>
+            </article>
+            <article class="round-mini-stat">
+              <span>Povp. čas</span>
+              <strong id="lastRoundAvgTime">0.0 s</strong>
+            </article>
+            <article class="round-mini-stat">
+              <span>Št. krogov</span>
+              <strong id="roundCount">0</strong>
+            </article>
+          </div>
+          <div class="round-graph" id="roundGraph">
+            <div class="history-copy">Graf se bo prikazal po prvem zaključenem krogu.</div>
+          </div>
+          <div class="round-history" id="roundHistory">
+            <div class="history-item">
+              <div class="history-title">Povzetek krogov</div>
+              <div class="history-copy">Po prvem krogu bo tukaj prikazan razvoj uspešnosti po ponovitvah.</div>
+            </div>
+          </div>
+          <div class="session-actions">
+            <button class="danger" id="repeatUnknownButton" type="button">Ponovi neznane</button>
+            <button class="ghost" id="restartAllButton" type="button">Začni cel komplet znova</button>
+          </div>
+        </div>
+      </section>
+
+      <div class="footer-actions">
+        <button class="primary" id="footerFlipButton" type="button">Obrni kartico</button>
+        <button class="success" id="knownButton" type="button">Znam ↑</button>
+        <button class="danger" id="unknownButton" type="button">Ne znam ↓</button>
+        <button class="secondary" id="footerPrevButton" type="button">Nazaj</button>
+        <button class="secondary" id="footerNextButton" type="button">Naprej</button>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal-overlay" id="confirmModal" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle">
+      <span class="tag">Potrditev</span>
+      <h3 id="confirmModalTitle">Začni znova?</h3>
+      <p id="confirmModalText">Trenutni napredek se bo ponastavil. To dejanje uporabi samo, če res želiš začeti od začetka.</p>
+      <div class="modal-actions">
+        <button class="ghost" id="confirmCancelButton" type="button">Prekliči</button>
+        <button class="danger" id="confirmAcceptButton" type="button">Da, začni znova</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const state = {
+      cards: [],
+      order: [],
+      currentIndex: 0,
+      flipped: false,
+      shuffleEnabled: false,
+      responses: {},
+      completedRound: false,
+      roundSource: "all",
+      roundHistory: [],
+      roundStats: null,
+      cardStartedAt: 0,
+      totalAnswerTimeMs: 0,
+      answerEvents: 0,
+      confirmPendingAction: null
+    };
+
+    const els = {
+      totalCards: document.getElementById("totalCards"),
+      currentCard: document.getElementById("currentCard"),
+      knownCards: document.getElementById("knownCards"),
+      unknownCards: document.getElementById("unknownCards"),
+      successRate: document.getElementById("successRate"),
+      remainingCards: document.getElementById("remainingCards"),
+      worstCaseRate: document.getElementById("worstCaseRate"),
+      avgCardTime: document.getElementById("avgCardTime"),
+      progressText: document.getElementById("progressText"),
+      progressFill: document.getElementById("progressFill"),
+      statusMessage: document.getElementById("statusMessage"),
+      shuffleToggle: document.getElementById("shuffleToggle"),
+      modeTag: document.getElementById("modeTag"),
+      answerStateTag: document.getElementById("answerStateTag"),
+      flashcard: document.getElementById("flashcard"),
+      questionText: document.getElementById("questionText"),
+      hintText: document.getElementById("hintText"),
+      answerText: document.getElementById("answerText"),
+      backQuestionText: document.getElementById("backQuestionText"),
+      answerTitle: document.getElementById("answerTitle"),
+      themeFront: document.getElementById("themeFront"),
+      themeBack: document.getElementById("themeBack"),
+      frontVisual: document.getElementById("frontVisual"),
+      frontImage: document.getElementById("frontImage"),
+      frontCaption: document.getElementById("frontCaption"),
+      backVisual: document.getElementById("backVisual"),
+      backImage: document.getElementById("backImage"),
+      backCaption: document.getElementById("backCaption"),
+      emptyState: document.getElementById("emptyState"),
+      sessionEnd: document.getElementById("sessionEnd"),
+      sessionEndTag: document.getElementById("sessionEndTag"),
+      sessionEndTitle: document.getElementById("sessionEndTitle"),
+      sessionEndText: document.getElementById("sessionEndText"),
+      lastRoundRate: document.getElementById("lastRoundRate"),
+      lastRoundAvgTime: document.getElementById("lastRoundAvgTime"),
+      roundCount: document.getElementById("roundCount"),
+      roundGraph: document.getElementById("roundGraph"),
+      roundHistory: document.getElementById("roundHistory"),
+      repeatUnknownButton: document.getElementById("repeatUnknownButton"),
+      restartAllButton: document.getElementById("restartAllButton"),
+      flipButton: document.getElementById("flipButton"),
+      footerFlipButton: document.getElementById("footerFlipButton"),
+      prevButton: document.getElementById("prevButton"),
+      nextButton: document.getElementById("nextButton"),
+      footerPrevButton: document.getElementById("footerPrevButton"),
+      footerNextButton: document.getElementById("footerNextButton"),
+      restartButton: document.getElementById("restartButton"),
+      knownButton: document.getElementById("knownButton"),
+      unknownButton: document.getElementById("unknownButton"),
+      jumpUnknownButton: document.getElementById("jumpUnknownButton"),
+      fullscreenButton: document.getElementById("fullscreenButton"),
+      fileLoadButton: document.getElementById("fileLoadButton"),
+      fileInput: document.getElementById("fileInput"),
+      confirmModal: document.getElementById("confirmModal"),
+      confirmModalText: document.getElementById("confirmModalText"),
+      confirmCancelButton: document.getElementById("confirmCancelButton"),
+      confirmAcceptButton: document.getElementById("confirmAcceptButton")
+    };
+
+    function setStatus(message, type = "") {
+      els.statusMessage.textContent = message;
+      els.statusMessage.className = type ? `status ${type}` : "status";
+    }
+
+    function normalizeCards(rawCards) {
+      if (!Array.isArray(rawCards)) {
+        return [];
+      }
+
+      return rawCards
+        .filter((card) => card && typeof card === "object")
+        .map((card, index) => ({
+          number: Number.isFinite(Number(card.number)) ? Number(card.number) : index + 1,
+          front: card.front || "",
+          back: card.back || "",
+          hint: card.hint || "Brez dodatnega namiga.",
+          imageUrl: "",
+          altText: ""
+        }))
+        .filter((card) => card.front && card.back);
+    }
+
+    function shuffleArray(items) {
+      const copy = [...items];
+
+      for (let i = copy.length - 1; i > 0; i -= 1) {
+        const randomIndex = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[randomIndex]] = [copy[randomIndex], copy[i]];
+      }
+
+      return copy;
+    }
+
+    function buildOrder() {
+      const baseOrder = state.cards.map((_, index) => index);
+      state.order = state.shuffleEnabled ? shuffleArray(baseOrder) : baseOrder;
+      state.currentIndex = 0;
+      startRoundSession("all");
+    }
+
+    function buildUnknownOrder() {
+      const unknownOrder = state.cards
+        .map((card, index) => ({ card, index }))
+        .filter(({ card }) => state.responses[String(card.number)] === "unknown")
+        .map(({ index }) => index);
+
+      state.order = state.shuffleEnabled ? shuffleArray(unknownOrder) : unknownOrder;
+      state.currentIndex = 0;
+      startRoundSession("unknown");
+    }
+
+    function getUnknownCardsCount() {
+      return state.cards.filter((card) => state.responses[String(card.number)] === "unknown").length;
+    }
+
+    function getRemainingCardsCount() {
+      const counts = getAnswerCounts();
+      return Math.max(state.cards.length - counts.reviewed, 0);
+    }
+
+    function getWorstCaseSuccessRate() {
+      return state.cards.length ? Math.round((getAnswerCounts().known / state.cards.length) * 100) : 0;
+    }
+
+    function formatDuration(ms) {
+      if (!ms) {
+        return "0.0 s";
+      }
+
+      const seconds = ms / 1000;
+      if (seconds < 60) {
+        return `${seconds.toFixed(1)} s`;
+      }
+
+      const minutes = Math.floor(seconds / 60);
+      const restSeconds = Math.round(seconds % 60).toString().padStart(2, "0");
+      return `${minutes}:${restSeconds} min`;
+    }
+
+    function getAverageCardTime() {
+      return state.answerEvents ? state.totalAnswerTimeMs / state.answerEvents : 0;
+    }
+
+    function startRoundSession(source) {
+      state.roundSource = source;
+      state.completedRound = false;
+      state.flipped = false;
+      state.roundStats = {
+        source,
+        cardsInRound: state.order.length,
+        attempts: 0,
+        known: 0,
+        unknown: 0,
+        totalTimeMs: 0
+      };
+      state.cardStartedAt = performance.now();
+    }
+
+    function recordAnswerTiming(responseType) {
+      const elapsed = Math.max(performance.now() - state.cardStartedAt, 0);
+      state.totalAnswerTimeMs += elapsed;
+      state.answerEvents += 1;
+
+      if (!state.roundStats) {
+        return;
+      }
+
+      state.roundStats.attempts += 1;
+      state.roundStats.totalTimeMs += elapsed;
+      state.roundStats[responseType] += 1;
+    }
+
+    function renderRoundSummary() {
+      const lastRound = state.roundHistory[state.roundHistory.length - 1] ?? null;
+
+      els.roundCount.textContent = String(state.roundHistory.length);
+      els.lastRoundRate.textContent = lastRound ? `${lastRound.successRate}%` : "0%";
+      els.lastRoundAvgTime.textContent = lastRound ? formatDuration(lastRound.averageTimeMs) : "0.0 s";
+
+      if (!state.roundHistory.length) {
+        els.roundGraph.innerHTML = '<div class="history-copy">Graf se bo prikazal po prvem zaključenem krogu.</div>';
+        els.roundHistory.innerHTML = `
+          <div class="history-item">
+            <div class="history-title">Povzetek krogov</div>
+            <div class="history-copy">Po prvem krogu bo tukaj prikazan razvoj uspešnosti po ponovitvah.</div>
+          </div>
+        `;
+        return;
+      }
+
+      els.roundGraph.innerHTML = state.roundHistory.map((round) => `
+        <div class="graph-col">
+          <div class="graph-score">${round.successRate}%</div>
+          <div class="graph-bar-wrap">
+            <div class="graph-bar" style="height: ${Math.max(round.successRate, 8)}%;"></div>
+          </div>
+          <div class="graph-label">Krog ${round.roundNumber}</div>
+        </div>
+      `).join("");
+
+      els.roundHistory.innerHTML = [...state.roundHistory].reverse().map((round) => `
+        <article class="history-item">
+          <div class="history-title">Krog ${round.roundNumber} · ${round.sourceLabel}</div>
+          <div class="history-copy">${round.known} znam, ${round.unknown} ne znam, uspešnost ${round.successRate}%, povprečen čas ${formatDuration(round.averageTimeMs)}.</div>
+        </article>
+      `).join("");
+    }
+
+    function openConfirmModal(message, onAccept) {
+      state.confirmPendingAction = onAccept;
+      els.confirmModalText.textContent = message;
+      els.confirmModal.classList.add("is-visible");
+      els.confirmModal.setAttribute("aria-hidden", "false");
+    }
+
+    function closeConfirmModal() {
+      state.confirmPendingAction = null;
+      els.confirmModal.classList.remove("is-visible");
+      els.confirmModal.setAttribute("aria-hidden", "true");
+    }
+
+    function confirmRestart(message) {
+      openConfirmModal(message, () => restartDeck({ resetResponses: true }));
+    }
+
+    function completeRound() {
+      if (state.completedRound) {
+        return;
+      }
+
+      state.completedRound = true;
+      state.flipped = false;
+      if (state.roundStats) {
+        const sourceLabel = state.roundStats.source === "unknown" ? "ponavljanje neznanih" : "celoten komplet";
+        state.roundHistory.push({
+          roundNumber: state.roundHistory.length + 1,
+          sourceLabel,
+          successRate: state.roundStats.attempts
+            ? Math.round((state.roundStats.known / state.roundStats.attempts) * 100)
+            : 0,
+          averageTimeMs: state.roundStats.attempts
+            ? state.roundStats.totalTimeMs / state.roundStats.attempts
+            : 0,
+          known: state.roundStats.known,
+          unknown: state.roundStats.unknown
+        });
+      }
+      render();
+      animateCardChange("reset");
+
+      const unknownCount = getUnknownCardsCount();
+      if (unknownCount > 0) {
+        setStatus(
+          `Krog je končan. Ostalo je ${unknownCount} kartic, ki jih še ne znaš. Lahko jih takoj ponoviš.`,
+          "error"
+        );
+      } else {
+        setStatus("Odlično, v tem trenutku nimaš več kartic označenih kot ne znam.", "success");
+      }
+    }
+
+    function getCurrentCard() {
+      if (!state.order.length) {
+        return null;
+      }
+
+      const cardIndex = state.order[state.currentIndex];
+      return state.cards[cardIndex] ?? null;
+    }
+
+    function getCurrentResponse(card) {
+      if (!card) {
+        return null;
+      }
+
+      return state.responses[String(card.number)] ?? null;
+    }
+
+    function getAnswerCounts() {
+      const responses = Object.values(state.responses);
+      const known = responses.filter((value) => value === "known").length;
+      const unknown = responses.filter((value) => value === "unknown").length;
+
+      return {
+        known,
+        unknown,
+        reviewed: known + unknown,
+        successRate: known + unknown ? Math.round((known / (known + unknown)) * 100) : 0
+      };
+    }
+
+    function updateAnswerStateTag(response) {
+      els.answerStateTag.className = "tag";
+
+      if (response === "known") {
+        els.answerStateTag.classList.add("success-tag");
+        els.answerStateTag.textContent = "Označeno: znam";
+        return;
+      }
+
+      if (response === "unknown") {
+        els.answerStateTag.classList.add("danger-tag");
+        els.answerStateTag.textContent = "Označeno: ne znam";
+        return;
+      }
+
+      els.answerStateTag.textContent = "Še neocenjeno";
+    }
+
+    function updateVisual(card) {
+      const hasImage = Boolean(card.imageUrl);
+      const altText = card.altText || `Slika za kartico: ${card.front}`;
+
+      els.frontVisual.classList.toggle("is-visible", hasImage);
+      els.backVisual.classList.toggle("is-visible", hasImage);
+
+      if (!hasImage) {
+        els.frontImage.removeAttribute("src");
+        els.backImage.removeAttribute("src");
+        return;
+      }
+
+      els.frontImage.src = card.imageUrl;
+      els.backImage.src = card.imageUrl;
+      els.frontImage.alt = altText;
+      els.backImage.alt = altText;
+      els.frontCaption.textContent = card.altText || "Povezana ilustracija ali zemljevid.";
+      els.backCaption.textContent = card.altText || "Povezana ilustracija ali zemljevid.";
+    }
+
+    function render() {
+      const total = state.cards.length;
+      const card = getCurrentCard();
+      const response = getCurrentResponse(card);
+      const counts = getAnswerCounts();
+      const progress = total ? Math.round((counts.reviewed / total) * 100) : 0;
+      const unknownCount = getUnknownCardsCount();
+      const remainingCount = getRemainingCardsCount();
+      const worstCaseRate = getWorstCaseSuccessRate();
+      const avgCardTime = getAverageCardTime();
+
+      els.totalCards.textContent = String(total);
+      els.currentCard.textContent = total && !state.completedRound ? `${state.currentIndex + 1} / ${state.order.length}` : "Konec";
+      els.knownCards.textContent = String(counts.known);
+      els.unknownCards.textContent = String(counts.unknown);
+      els.successRate.textContent = `${counts.successRate}%`;
+      els.remainingCards.textContent = String(remainingCount);
+      els.worstCaseRate.textContent = `${worstCaseRate}%`;
+      els.avgCardTime.textContent = formatDuration(avgCardTime);
+      els.progressText.textContent = `${progress}%`;
+      els.progressFill.style.width = `${progress}%`;
+      els.modeTag.textContent = state.roundSource === "unknown"
+        ? "Ponavljanje neznanih"
+        : state.shuffleEnabled
+          ? "Mešani vrstni red"
+          : "Originalni vrstni red";
+      updateAnswerStateTag(response);
+
+      els.flashcard.classList.toggle("is-flipped", state.flipped);
+      els.flashcard.classList.toggle("hidden", !card || state.completedRound);
+      els.emptyState.classList.toggle("is-visible", !card);
+      els.sessionEnd.classList.toggle("is-visible", state.completedRound);
+
+      els.sessionEndTag.textContent = state.roundSource === "unknown" ? "Ponavljanje končano" : "Konec kroga";
+      els.sessionEndTitle.textContent = unknownCount > 0
+        ? "Ostalo je še nekaj kartic za utrjevanje."
+        : "Znaš vse kartice v trenutni bazi.";
+      els.sessionEndText.textContent = unknownCount > 0
+        ? `Trenutno je ${unknownCount} kartic še označenih kot "ne znam". Pritisni spodnji gumb in ponavljaj samo te kartice, dokler jih ne pretvoriš v "znam".`
+        : "Vse kartice so označene kot znane. Če želiš, lahko vseeno začneš nov celoten krog.";
+      els.repeatUnknownButton.disabled = unknownCount === 0;
+      els.jumpUnknownButton.disabled = unknownCount === 0;
+      els.fullscreenButton.textContent = document.fullscreenElement ? "Izhod iz cel. zaslona" : "Celozaslonsko";
+      renderRoundSummary();
+
+      if (!card) {
+        els.questionText.textContent = "Kartice niso na voljo.";
+        els.hintText.textContent = "Preveri datoteko geografija.json.";
+        els.answerText.textContent = "Ko bo baza prepoznana, se bodo odgovori prikazali tukaj.";
+        els.backQuestionText.textContent = "Vprašanje bo prikazano tukaj.";
+        return;
+      }
+
+      els.questionText.textContent = card.front;
+      els.hintText.textContent = card.hint;
+      els.answerText.textContent = card.back;
+      els.backQuestionText.textContent = card.front;
+      els.themeFront.textContent = card.hint || "Geografija";
+      els.themeBack.textContent = card.hint || "Geografija";
+      updateVisual(card);
+
+      els.flipButton.textContent = state.flipped ? "Nazaj na vprašanje" : "Pokaži odgovor";
+      els.footerFlipButton.textContent = state.flipped ? "Nazaj na vprašanje" : "Obrni kartico";
+
+      document.title = card.front ? `Geografija: ${card.front}` : "Geografske Flashcards";
+    }
+
+    function animateCardChange(direction = "next") {
+      const animationClass =
+        direction === "prev"
+          ? "animate-prev"
+          : direction === "reset"
+            ? "animate-reset"
+            : "animate-next";
+
+      els.flashcard.classList.remove("animate-next", "animate-prev", "animate-reset");
+      void els.flashcard.offsetWidth;
+      els.flashcard.classList.add(animationClass);
+    }
+
+    function jumpToFirstUnknown() {
+      const targetPosition = state.order.findIndex((cardIndex) => {
+        const card = state.cards[cardIndex];
+        return state.responses[String(card.number)] === "unknown";
+      });
+
+      if (targetPosition === -1) {
+        setStatus("Trenutno ni kartic, označenih kot ne znam.", "success");
+        return;
+      }
+
+      state.currentIndex = targetPosition;
+      state.completedRound = false;
+      state.flipped = false;
+      state.cardStartedAt = performance.now();
+      render();
+      animateCardChange("reset");
+      setStatus("Skok na prvo kartico, ki je še označena kot ne znam.", "success");
+    }
+
+    async function toggleFullscreen() {
+      try {
+        if (document.fullscreenElement) {
+          await document.exitFullscreen();
+          setStatus("Celozaslonski način je izklopljen.", "success");
+          return;
+        }
+
+        await document.documentElement.requestFullscreen();
+        setStatus("Celozaslonski način je vklopljen.", "success");
+      } catch (error) {
+        setStatus("Celozaslonskega načina ni bilo mogoče vklopiti v tem brskalniku.", "error");
+        console.error(error);
+      }
+    }
+
+    function markCard(responseType) {
+      const card = getCurrentCard();
+
+      if (!card || state.completedRound) {
+        return;
+      }
+
+      recordAnswerTiming(responseType);
+      state.responses[String(card.number)] = responseType;
+      state.flipped = false;
+      render();
+
+      const counts = getAnswerCounts();
+      const label = responseType === "known" ? "znaš" : "ne znaš";
+      setStatus(
+        `Kartica je označena kot "${label}". Znam: ${counts.known}, ne znam: ${counts.unknown}.`,
+        responseType === "known" ? "success" : "error"
+      );
+
+      if (state.currentIndex >= state.order.length - 1) {
+        completeRound();
+        return;
+      }
+
+      if (state.order.length > 1) {
+        showNext();
+      }
+    }
+
+    function showNext() {
+      if (!state.order.length || state.completedRound) {
+        return;
+      }
+
+      if (state.currentIndex >= state.order.length - 1) {
+        completeRound();
+        return;
+      }
+
+      state.currentIndex += 1;
+      state.flipped = false;
+      state.cardStartedAt = performance.now();
+      render();
+      animateCardChange("next");
+    }
+
+    function showPrevious() {
+      if (!state.order.length || state.completedRound) {
+        return;
+      }
+
+      state.currentIndex = (state.currentIndex - 1 + state.order.length) % state.order.length;
+      state.flipped = false;
+      state.cardStartedAt = performance.now();
+      render();
+      animateCardChange("prev");
+    }
+
+    function toggleFlip() {
+      if (!state.order.length) {
+        return;
+      }
+
+      state.flipped = !state.flipped;
+      render();
+    }
+
+    function restartDeck(options = {}) {
+      const { resetResponses = false } = options;
+
+      if (resetResponses) {
+        state.responses = {};
+        state.roundHistory = [];
+        state.totalAnswerTimeMs = 0;
+        state.answerEvents = 0;
+      }
+
+      buildOrder();
+      render();
+      animateCardChange("reset");
+      const total = state.cards.length;
+      const counts = getAnswerCounts();
+      setStatus(
+        resetResponses
+          ? `Učna seja je bila ponastavljena. Ocenjeno: ${counts.reviewed} od ${total}.`
+          : state.shuffleEnabled
+            ? `Komplet je bil znova zagnan in kartice so na novo premešane. Ocenjeno: ${counts.reviewed} od ${total}.`
+            : `Komplet je bil znova zagnan v originalnem vrstnem redu. Ocenjeno: ${counts.reviewed} od ${total}.`,
+        "success"
+      );
+    }
+
+    function hydrateCards(cards, sourceLabel) {
+      state.cards = cards;
+      state.responses = {};
+      state.roundHistory = [];
+      state.totalAnswerTimeMs = 0;
+      state.answerEvents = 0;
+      buildOrder();
+      render();
+      animateCardChange("reset");
+      els.fileLoadButton.classList.add("hidden");
+      setStatus(`Naloženih kartic: ${cards.length}. Vir: ${sourceLabel}. Baza ostaja samo za branje.`, "success");
+    }
+
+    async function loadCards() {
+      try {
+        const response = await fetch("./geografija.json", { cache: "no-store" });
+
+        if (!response.ok) {
+          throw new Error(`Napaka pri branju baze (${response.status}).`);
+        }
+
+        const rawCards = await response.json();
+        const cards = normalizeCards(rawCards);
+
+        if (!cards.length) {
+          throw new Error("Baza je bila prebrana, vendar ni bilo mogoče sestaviti kartic.");
+        }
+
+        hydrateCards(cards, "samodejno iz geografija.json");
+      } catch (error) {
+        state.cards = [];
+        state.order = [];
+        render();
+        els.fileLoadButton.classList.remove("hidden");
+        setStatus(
+          "Kartic ni bilo mogoče samodejno naložiti. Če si HTML odprl neposredno z dvojnim klikom, klikni spodnji gumb in izberi isti geografija.json, ali pa stran odpri prek lokalnega strežnika.",
+          "error"
+        );
+        console.error(error);
+      }
+    }
+
+    els.shuffleToggle.addEventListener("change", (event) => {
+      state.shuffleEnabled = event.target.checked;
+      restartDeck();
+    });
+
+    els.flipButton.addEventListener("click", toggleFlip);
+    els.footerFlipButton.addEventListener("click", toggleFlip);
+    els.nextButton.addEventListener("click", showNext);
+    els.footerNextButton.addEventListener("click", showNext);
+    els.prevButton.addEventListener("click", showPrevious);
+    els.footerPrevButton.addEventListener("click", showPrevious);
+    els.restartButton.addEventListener("click", () => confirmRestart("Trenutni napredek, ocene in ponovitve se bodo ponastavili. Ali res želiš začeti znova?"));
+    els.repeatUnknownButton.addEventListener("click", () => {
+      buildUnknownOrder();
+
+      if (!state.order.length) {
+        completeRound();
+        return;
+      }
+
+      render();
+      animateCardChange("reset");
+      setStatus(`Začenja se nov krog samo z neznanimi karticami: ${state.order.length}.`, "success");
+    });
+    els.restartAllButton.addEventListener("click", () => confirmRestart("S tem boš zaprl trenutni povzetek in začel celoten komplet znova od začetka. Nadaljujem?"));
+    els.knownButton.addEventListener("click", () => markCard("known"));
+    els.unknownButton.addEventListener("click", () => markCard("unknown"));
+    els.jumpUnknownButton.addEventListener("click", jumpToFirstUnknown);
+    els.fullscreenButton.addEventListener("click", toggleFullscreen);
+    els.fileLoadButton.addEventListener("click", () => els.fileInput.click());
+    els.fileInput.addEventListener("change", async (event) => {
+      const [file] = event.target.files || [];
+
+      if (!file) {
+        return;
+      }
+
+      try {
+        const text = await file.text();
+        const cards = normalizeCards(JSON.parse(text));
+
+        if (!cards.length) {
+          throw new Error("Izbrana datoteka ne vsebuje prepoznanih kartic.");
+        }
+
+        hydrateCards(cards, `ročno iz datoteke ${file.name}`);
+      } catch (error) {
+        setStatus("Izbrane datoteke ni bilo mogoče prebrati kot veljavno JSON bazo kartic.", "error");
+        console.error(error);
+      } finally {
+        event.target.value = "";
+      }
+    });
+
+    els.confirmCancelButton.addEventListener("click", closeConfirmModal);
+    els.confirmAcceptButton.addEventListener("click", () => {
+      const action = state.confirmPendingAction;
+      closeConfirmModal();
+      action?.();
+    });
+    els.confirmModal.addEventListener("click", (event) => {
+      if (event.target === els.confirmModal) {
+        closeConfirmModal();
+      }
+    });
+    document.addEventListener("fullscreenchange", render);
+
+    document.addEventListener("keydown", (event) => {
+      if (els.confirmModal.classList.contains("is-visible")) {
+        if (event.key === "Escape") {
+          closeConfirmModal();
+        }
+        return;
+      }
+
+      const activeTag = document.activeElement?.tagName;
+
+      if (activeTag === "INPUT" || activeTag === "TEXTAREA") {
+        return;
+      }
+
+      if (event.code === "Space") {
+        event.preventDefault();
+        toggleFlip();
+      }
+
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        showNext();
+      }
+
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        showPrevious();
+      }
+
+      if (event.key === "ArrowUp") {
+        event.preventDefault();
+        markCard("known");
+      }
+
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        markCard("unknown");
+      }
+
+    });
+
+    loadCards();
+  </script>
+</body>
+</html>
