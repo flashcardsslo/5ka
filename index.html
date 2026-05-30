@@ -328,11 +328,6 @@
       color: var(--danger);
     }
 
-    .shortcut {
-      color: var(--muted);
-      font-size: 0.84rem;
-    }
-
     .flashcard {
       position: relative;
       flex: 1;
@@ -956,10 +951,6 @@
         max-width: none;
       }
 
-      .shortcut {
-        display: none;
-      }
-
       .face-top {
         align-items: stretch;
       }
@@ -1016,7 +1007,7 @@
         <p class="eyebrow">Geografija</p>
         <h1>Učenje s flashcardi</h1>
         <p class="lead">
-          Aplikacija pogleda v mapo <strong>data</strong> in ti ponudi izbiro JSON vprašalnika, če jih najde več.
+          Izberi vprašalnik in začni z učenjem.
         </p>
       </div>
 
@@ -1097,7 +1088,6 @@
       <div class="card-toolbar">
         <span class="tag" id="modeTag">Originalni vrstni red</span>
         <span class="tag" id="answerStateTag">Še neocenjeno</span>
-        <span class="shortcut">Preslednica: odgovor, levo/desno: kartica, gor: znam, dol: ne znam</span>
       </div>
 
       <div class="flashcard" id="flashcard">
@@ -1112,7 +1102,7 @@
               <h2 class="question" id="questionText">Nalagam kartice...</h2>
               <div class="hint-block">
                 <span class="hint-label">Namig</span>
-                <p class="hint-text" id="hintText">Namig se prikaže tukaj v manjši pisavi.</p>
+                <p class="hint-text" id="hintText">Namig.</p>
               </div>
             </div>
 
@@ -1146,7 +1136,7 @@
       </div>
 
       <div class="empty-state" id="emptyState">
-        V bazi ni bilo mogoče najti kartic. Preveri, da je v isti mapi kot ta HTML datoteka datoteka <strong>manifest.json</strong>.
+        Kartice trenutno niso na voljo.
       </div>
 
       <section class="session-end" id="sessionEnd">
@@ -1198,12 +1188,9 @@
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="quizSelectModalTitle">
       <span class="tag">Izberi vprašalnik</span>
       <h3 id="quizSelectModalTitle">Izberi vprašalnik za reševanje</h3>
-      <p id="quizSelectModalText">
-        Aplikacija je prebrala <strong>manifest.json</strong> v isti mapi kot ta datoteka. Klikni oblaček, da takoj naložiš vprašalnik.
-      </p>
+      <p id="quizSelectModalText">Izberi vprašalnik.</p>
       <div class="quiz-picker-meta">
         <span id="quizPickerCount">0 vprašalnikov</span>
-        <span>Oblačke lahko pregleduješ z drsnikom.</span>
       </div>
       <div class="quiz-picker-grid" id="quizPickerGrid" aria-live="polite"></div>
       <div class="modal-actions">
@@ -1315,7 +1302,7 @@
           number: Number.isFinite(Number(card.number)) ? Number(card.number) : index + 1,
           front: card.front || "",
           back: card.back || "",
-          hint: card.hint || "Brez dodatnega namiga.",
+          hint: card.hint || "",
           imageUrl: typeof card.imageUrl === "string" ? card.imageUrl : "",
           altText: typeof card.altText === "string" ? card.altText : ""
         }))
@@ -1382,7 +1369,7 @@
 
         const description = document.createElement("p");
         description.className = "quiz-cloud-desc";
-        description.textContent = quiz.description || "Brez opisa.";
+        description.textContent = quiz.description || "";
 
         foot.append(footLabel, footCount);
         button.append(foot, title, description);
@@ -1726,8 +1713,8 @@
       renderRoundSummary();
 
       if (!card) {
-      els.questionText.textContent = "Kartice niso na voljo.";
-      els.hintText.textContent = "Preveri datoteko manifest.json.";
+        els.questionText.textContent = "Kartice niso na voljo.";
+        els.hintText.textContent = "Naloži vprašalnik.";
       els.answerText.textContent = "Ko bo baza prepoznana, se bodo odgovori prikazali tukaj.";
       els.backQuestionText.textContent = "Vprašanje bo prikazano tukaj.";
       return;
