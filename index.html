@@ -788,20 +788,23 @@
     }
 
     .modal-card {
-      width: min(460px, 100%);
-      border-radius: 24px;
-      padding: 22px;
+      width: min(920px, 100%);
+      max-height: min(88vh, 920px);
+      border-radius: 28px;
+      padding: 24px;
+      overflow: hidden;
       background: rgba(255, 252, 247, 0.98);
       border: 1px solid rgba(23, 49, 58, 0.1);
       box-shadow: 0 28px 70px rgba(23, 49, 58, 0.22);
       display: grid;
-      gap: 14px;
+      grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+      gap: 16px;
     }
 
     .modal-card h3 {
       margin: 0;
       font-family: var(--font-display);
-      font-size: 1.45rem;
+      font-size: clamp(1.5rem, 2.2vw, 2rem);
     }
 
     .modal-card p {
@@ -810,11 +813,88 @@
       line-height: 1.45;
     }
 
+    .quiz-picker-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .quiz-picker-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+      overflow: auto;
+      padding-right: 4px;
+      align-content: start;
+    }
+
+    .quiz-cloud {
+      appearance: none;
+      text-align: left;
+      border: 1px solid rgba(23, 49, 58, 0.1);
+      background:
+        radial-gradient(circle at top right, rgba(15, 139, 141, 0.08), transparent 48%),
+        radial-gradient(circle at bottom left, rgba(239, 125, 87, 0.08), transparent 55%),
+        rgba(255, 255, 255, 0.86);
+      border-radius: 24px;
+      padding: 18px;
+      box-shadow: 0 12px 30px rgba(23, 49, 58, 0.08);
+      display: grid;
+      gap: 8px;
+      min-height: 132px;
+      transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+    }
+
+    .quiz-cloud:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 16px 36px rgba(23, 49, 58, 0.12);
+      border-color: rgba(15, 139, 141, 0.24);
+    }
+
+    .quiz-cloud:focus-visible {
+      outline: 3px solid rgba(15, 139, 141, 0.22);
+      outline-offset: 2px;
+    }
+
+    .quiz-cloud.is-active {
+      border-color: rgba(15, 139, 141, 0.34);
+      box-shadow: 0 16px 36px rgba(15, 139, 141, 0.16);
+    }
+
+    .quiz-cloud-name {
+      font-family: var(--font-display);
+      font-size: 1.02rem;
+      line-height: 1.15;
+      margin: 0;
+    }
+
+    .quiz-cloud-desc {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: 0.9rem;
+    }
+
+    .quiz-cloud-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      color: var(--accent-strong);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
     .modal-actions {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 10px;
-      margin-top: 4px;
     }
 
     @media (max-width: 1100px) {
@@ -1114,21 +1194,20 @@
     </section>
   </main>
 
-  <div class="modal-overlay" id="quizSelectModal" aria-hidden="true">
+    <div class="modal-overlay" id="quizSelectModal" aria-hidden="true">
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="quizSelectModalTitle">
       <span class="tag">Izberi vprašalnik</span>
-      <h3 id="quizSelectModalTitle">Izberi datoteko vprašalnika</h3>
+      <h3 id="quizSelectModalTitle">Izberi vprašalnik za reševanje</h3>
       <p id="quizSelectModalText">
-        Aplikacija je prebrala <strong>manifest.json</strong> v isti mapi kot ta datoteka. Izberi vprašalnik, ki ga želiš reševati.
+        Aplikacija je prebrala <strong>manifest.json</strong> v isti mapi kot ta datoteka. Klikni oblaček, da takoj naložiš vprašalnik.
       </p>
-      <select id="quizFileSelect"></select>
-      <div class="control-copy" id="quizDescription" aria-live="polite">
-        <span class="control-title">Opis vprašalnika</span>
-        <span class="control-subtitle">Izberi vprašalnik, da prikažemo njegov opis.</span>
+      <div class="quiz-picker-meta">
+        <span id="quizPickerCount">0 vprašalnikov</span>
+        <span>Oblačke lahko pregleduješ z drsnikom.</span>
       </div>
+      <div class="quiz-picker-grid" id="quizPickerGrid" aria-live="polite"></div>
       <div class="modal-actions">
         <button class="ghost" id="quizSelectCancelButton" type="button">Prekliči</button>
-        <button class="primary" id="quizSelectAcceptButton" type="button">Naloži izbrano</button>
       </div>
     </div>
   </div>
@@ -1220,10 +1299,9 @@
       confirmCancelButton: document.getElementById("confirmCancelButton"),
       confirmAcceptButton: document.getElementById("confirmAcceptButton"),
       quizSelectModal: document.getElementById("quizSelectModal"),
-      quizFileSelect: document.getElementById("quizFileSelect"),
-      quizDescription: document.getElementById("quizDescription"),
-      quizSelectCancelButton: document.getElementById("quizSelectCancelButton"),
-      quizSelectAcceptButton: document.getElementById("quizSelectAcceptButton")
+      quizPickerCount: document.getElementById("quizPickerCount"),
+      quizPickerGrid: document.getElementById("quizPickerGrid"),
+      quizSelectCancelButton: document.getElementById("quizSelectCancelButton")
     };
 
     function normalizeCards(rawCards) {
@@ -1279,49 +1357,64 @@
       return quizzes;
     }
 
+    function renderQuizPicker(quizzes) {
+      els.quizPickerCount.textContent = quizzes.length === 1 ? "1 vprašalnik" : `${quizzes.length} vprašalnikov`;
+      els.quizPickerGrid.replaceChildren();
+
+      quizzes.forEach((quiz, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "quiz-cloud";
+        button.dataset.path = quiz.path;
+        button.dataset.index = String(index + 1);
+        const foot = document.createElement("div");
+        foot.className = "quiz-cloud-foot";
+
+        const footLabel = document.createElement("span");
+        footLabel.textContent = `Vprašalnik ${index + 1}`;
+
+        const footCount = document.createElement("span");
+        footCount.textContent = `${index + 1}/${quizzes.length}`;
+
+        const title = document.createElement("p");
+        title.className = "quiz-cloud-name";
+        title.textContent = quiz.name;
+
+        const description = document.createElement("p");
+        description.className = "quiz-cloud-desc";
+        description.textContent = quiz.description || "Brez opisa.";
+
+        foot.append(footLabel, footCount);
+        button.append(foot, title, description);
+        button.addEventListener("click", async () => {
+          state.selectedQuizFile = quiz.path;
+          closeQuizSelection();
+          await loadCards(quiz.path);
+        });
+        els.quizPickerGrid.append(button);
+      });
+
+      updateActiveQuizCloud();
+    }
+
+    function updateActiveQuizCloud() {
+      const activePath = state.selectedQuizFile || state.availableQuizFiles[0]?.path || "";
+      els.quizPickerGrid.querySelectorAll(".quiz-cloud").forEach((button) => {
+        button.classList.toggle("is-active", button.dataset.path === activePath);
+      });
+    }
+
     function openQuizSelection(quizzes) {
       state.availableQuizFiles = quizzes;
       state.selectedQuizFile = quizzes[0]?.path || "";
-      els.quizFileSelect.innerHTML = "";
-      for (const quiz of quizzes) {
-        const option = document.createElement("option");
-        option.value = quiz.path;
-        option.textContent = quiz.name;
-        els.quizFileSelect.append(option);
-      }
-      updateQuizDescription();
+      renderQuizPicker(quizzes);
       els.quizSelectModal.classList.add("is-visible");
       els.quizSelectModal.setAttribute("aria-hidden", "false");
-    }
-
-    function updateQuizDescription() {
-      const selectedPath = els.quizFileSelect.value || state.selectedQuizFile;
-      const selectedQuiz = state.availableQuizFiles.find((quiz) => quiz.path === selectedPath) || null;
-
-      if (!selectedQuiz) {
-        els.quizDescription.querySelector(".control-title").textContent = "Opis vprašalnika";
-        els.quizDescription.querySelector(".control-subtitle").textContent = "Izberi vprašalnik, da prikažemo njegov opis.";
-        return;
-      }
-
-      els.quizDescription.querySelector(".control-title").textContent = selectedQuiz.name;
-      els.quizDescription.querySelector(".control-subtitle").textContent = selectedQuiz.description || "Brez opisa.";
     }
 
     function closeQuizSelection() {
       els.quizSelectModal.classList.remove("is-visible");
       els.quizSelectModal.setAttribute("aria-hidden", "true");
-    }
-
-    async function loadSelectedQuiz() {
-      const selected = els.quizFileSelect.value || state.availableQuizFiles[0]?.path;
-      if (selected) {
-        closeQuizSelection();
-        await loadCards(selected);
-      } else {
-        closeQuizSelection();
-        await loadDefaultQuiz();
-      }
     }
 
     async function loadDefaultQuiz() {
@@ -1833,8 +1926,6 @@
       }
     });
 
-    els.quizFileSelect.addEventListener("change", updateQuizDescription);
-    els.quizSelectAcceptButton.addEventListener("click", loadSelectedQuiz);
     els.quizSelectCancelButton.addEventListener("click", () => {
       closeQuizSelection();
       loadDefaultQuiz().catch((error) => {
