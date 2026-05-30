@@ -936,7 +936,7 @@
         <p class="eyebrow">Geografija</p>
         <h1>Učenje s flashcardi</h1>
         <p class="lead">
-          Aplikacija bere kartice iz datoteke <strong>geografija.json</strong>, baza pa ostane ves čas nespremenjena.
+          Aplikacija pogleda v mapo <strong>data</strong> in ti ponudi izbiro JSON vprašalnika, če jih najde več.
         </p>
       </div>
 
@@ -1119,6 +1119,21 @@
     </section>
   </main>
 
+  <div class="modal-overlay" id="quizSelectModal" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="quizSelectModalTitle">
+      <span class="tag">Izberi vprašalnik</span>
+      <h3 id="quizSelectModalTitle">Izberi datoteko vprašalnika</h3>
+      <p id="quizSelectModalText">
+        Aplikacija je pogledala v mapo <strong>data</strong>. Izberi JSON datoteko, ki jo želiš uporabiti.
+      </p>
+      <select id="quizFileSelect"></select>
+      <div class="modal-actions">
+        <button class="ghost" id="quizSelectCancelButton" type="button">Prekliči</button>
+        <button class="primary" id="quizSelectAcceptButton" type="button">Naloži izbrano</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-overlay" id="confirmModal" aria-hidden="true">
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle">
       <span class="tag">Potrditev</span>
@@ -1146,7 +1161,9 @@
       cardStartedAt: 0,
       totalAnswerTimeMs: 0,
       answerEvents: 0,
-      confirmPendingAction: null
+      confirmPendingAction: null,
+      availableQuizFiles: [],
+      selectedQuizFile: ""
     };
 
     const els = {
@@ -1204,7 +1221,11 @@
       confirmModal: document.getElementById("confirmModal"),
       confirmModalText: document.getElementById("confirmModalText"),
       confirmCancelButton: document.getElementById("confirmCancelButton"),
-      confirmAcceptButton: document.getElementById("confirmAcceptButton")
+      confirmAcceptButton: document.getElementById("confirmAcceptButton"),
+      quizSelectModal: document.getElementById("quizSelectModal"),
+      quizFileSelect: document.getElementById("quizFileSelect"),
+      quizSelectCancelButton: document.getElementById("quizSelectCancelButton"),
+      quizSelectAcceptButton: document.getElementById("quizSelectAcceptButton")
     };
 
     function normalizeCards(rawCards) {
@@ -1223,6 +1244,90 @@
           altText: ""
         }))
         .filter((card) => card.front && card.back);
+    }
+
+    function parseDataDirectoryListing(text, baseUrl) {
+      const matches = [...text.matchAll(/href\s*=\s*["']([^"']+\.json)["']/gi)];
+      return matches
+        .map((match) => match[1])
+        .map((href) => {
+          try {
+            return new URL(href, baseUrl).pathname;
+          } catch {
+            return href;
+          }
+        })
+        .map((path) => path.replace(/^\.\//, ""))
+        .filter((path) => path.toLowerCase().endsWith(".json"))
+        .map((path) => (path.startsWith("data/") ? path : `data/${path}`));
+    }
+
+    async function detectQuizFiles() {
+      const directoryUrl = "./data/";
+      try {
+        const response = await fetch(directoryUrl, { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error(`Ni mogoče prebrati mape data (${response.status}).`);
+        }
+
+        const contentType = response.headers.get("content-type") || "";
+        if (contentType.includes("application/json")) {
+          const list = await response.json();
+          if (Array.isArray(list)) {
+            return list
+              .filter((item) => typeof item === "string" && item.toLowerCase().endsWith(".json"))
+              .map((item) => (item.startsWith("data/") ? item : `data/${item}`));
+          }
+        }
+
+        const text = await response.text();
+        return parseDataDirectoryListing(text, response.url);
+      } catch (error) {
+        console.warn("Detekcija JSON datotek v mapi data ni uspela:", error);
+        return [];
+      }
+    }
+
+    function openQuizSelection(files) {
+      state.availableQuizFiles = files;
+      state.selectedQuizFile = files[0] || "";
+      els.quizFileSelect.innerHTML = files
+        .map((file) => `<option value="${file}">${file.replace(/^data\//, "")}</option>`)
+        .join("");
+      els.quizSelectModal.classList.add("is-visible");
+      els.quizSelectModal.setAttribute("aria-hidden", "false");
+    }
+
+    function closeQuizSelection() {
+      els.quizSelectModal.classList.remove("is-visible");
+      els.quizSelectModal.setAttribute("aria-hidden", "true");
+    }
+
+    async function loadSelectedQuiz() {
+      const selected = els.quizFileSelect.value || state.availableQuizFiles[0];
+      if (selected) {
+        closeQuizSelection();
+        await loadCards(selected);
+      } else {
+        closeQuizSelection();
+        await loadCards();
+      }
+    }
+
+    async function initializeQuizLoader() {
+      const files = await detectQuizFiles();
+
+      if (files.length === 1) {
+        await loadCards(files[0]);
+        return;
+      }
+
+      if (files.length > 1) {
+        openQuizSelection(files);
+        return;
+      }
+
+      await loadCards();
     }
 
     function shuffleArray(items) {
@@ -1392,10 +1497,6 @@
       }
       render();
       animateCardChange("reset");
-
-      const unknownCount = getUnknownCardsCount();
-      if (unknownCount > 0) {
-      }
     }
 
     function getCurrentCard() {
@@ -1646,9 +1747,9 @@
       els.fileLoadButton.classList.add("hidden");
     }
 
-    async function loadCards() {
+    async function loadCards(source = "./geografija.json") {
       try {
-        const response = await fetch("./geografija.json", { cache: "no-store" });
+        const response = await fetch(source, { cache: "no-store" });
 
         if (!response.ok) {
           throw new Error(`Napaka pri branju baze (${response.status}).`);
@@ -1733,6 +1834,19 @@
         closeConfirmModal();
       }
     });
+
+    els.quizSelectAcceptButton.addEventListener("click", loadSelectedQuiz);
+    els.quizSelectCancelButton.addEventListener("click", () => {
+      closeQuizSelection();
+      loadCards();
+    });
+    els.quizSelectModal.addEventListener("click", (event) => {
+      if (event.target === els.quizSelectModal) {
+        closeQuizSelection();
+        loadCards();
+      }
+    });
+
     document.addEventListener("fullscreenchange", render);
 
     document.addEventListener("keydown", (event) => {
@@ -1773,10 +1887,9 @@
         event.preventDefault();
         markCard("unknown");
       }
-
     });
 
-    loadCards();
+    initializeQuizLoader();
   </script>
 </body>
 </html>
