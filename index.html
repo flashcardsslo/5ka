@@ -1263,6 +1263,32 @@
     }
 
     async function detectQuizFiles() {
+      const manifestFiles = [
+        "./data/quiz-list.json",
+        "./data/manifest.json",
+        "./data/index.json"
+      ];
+
+      for (const manifestUrl of manifestFiles) {
+        try {
+          const response = await fetch(manifestUrl, { cache: "no-store" });
+          if (!response.ok) {
+            continue;
+          }
+
+          const list = await response.json();
+          if (!Array.isArray(list)) {
+            continue;
+          }
+
+          return list
+            .filter((item) => typeof item === "string" && item.toLowerCase().endsWith(".json"))
+            .map((item) => (item.startsWith("data/") ? item : `data/${item}`));
+        } catch (error) {
+          console.warn(`Manifest ${manifestUrl} ni bil dostopen:`, error);
+        }
+      }
+
       const directoryUrl = "./data/";
       try {
         const response = await fetch(directoryUrl, { cache: "no-store" });
