@@ -1009,11 +1009,6 @@
 
       <section class="micro-actions">
         <button class="ghost" id="fullscreenButton" type="button">Celozaslonsko</button>
-        <button class="ghost hidden" id="fileLoadButton" type="button">Ročno naloži geografija.json</button>
-      </section>
-
-      <section class="single-action">
-        <input class="hidden" id="fileInput" type="file" accept=".json,application/json">
       </section>
 
     </aside>
@@ -1071,7 +1066,7 @@
       </div>
 
       <div class="empty-state" id="emptyState">
-        V bazi ni bilo mogoče najti kartic. Preveri, da je datoteka <strong>geografija.json</strong> v isti mapi kot ta HTML datoteka.
+        V bazi ni bilo mogoče najti kartic. Preveri, da je v isti mapi kot ta HTML datoteka datoteka <strong>manifest.json</strong>.
       </div>
 
       <section class="session-end" id="sessionEnd">
@@ -1124,9 +1119,13 @@
       <span class="tag">Izberi vprašalnik</span>
       <h3 id="quizSelectModalTitle">Izberi datoteko vprašalnika</h3>
       <p id="quizSelectModalText">
-        Aplikacija je pogledala v mapo <strong>data</strong>. Izberi JSON datoteko, ki jo želiš uporabiti.
+        Aplikacija je prebrala <strong>manifest.json</strong> v isti mapi kot ta datoteka. Izberi vprašalnik, ki ga želiš reševati.
       </p>
       <select id="quizFileSelect"></select>
+      <div class="control-copy" id="quizDescription" aria-live="polite">
+        <span class="control-title">Opis vprašalnika</span>
+        <span class="control-subtitle">Izberi vprašalnik, da prikažemo njegov opis.</span>
+      </div>
       <div class="modal-actions">
         <button class="ghost" id="quizSelectCancelButton" type="button">Prekliči</button>
         <button class="primary" id="quizSelectAcceptButton" type="button">Naloži izbrano</button>
@@ -1216,14 +1215,13 @@
       knownButton: document.getElementById("knownButton"),
       unknownButton: document.getElementById("unknownButton"),
       fullscreenButton: document.getElementById("fullscreenButton"),
-      fileLoadButton: document.getElementById("fileLoadButton"),
-      fileInput: document.getElementById("fileInput"),
       confirmModal: document.getElementById("confirmModal"),
       confirmModalText: document.getElementById("confirmModalText"),
       confirmCancelButton: document.getElementById("confirmCancelButton"),
       confirmAcceptButton: document.getElementById("confirmAcceptButton"),
       quizSelectModal: document.getElementById("quizSelectModal"),
       quizFileSelect: document.getElementById("quizFileSelect"),
+      quizDescription: document.getElementById("quizDescription"),
       quizSelectCancelButton: document.getElementById("quizSelectCancelButton"),
       quizSelectAcceptButton: document.getElementById("quizSelectAcceptButton")
     };
@@ -1240,88 +1238,74 @@
           front: card.front || "",
           back: card.back || "",
           hint: card.hint || "Brez dodatnega namiga.",
-          imageUrl: "",
-          altText: ""
+          imageUrl: typeof card.imageUrl === "string" ? card.imageUrl : "",
+          altText: typeof card.altText === "string" ? card.altText : ""
         }))
         .filter((card) => card.front && card.back);
     }
 
-    function parseDataDirectoryListing(text, baseUrl) {
-      const matches = [...text.matchAll(/href\s*=\s*["']([^"']+\.json)["']/gi)];
-      return matches
-        .map((match) => match[1])
-        .map((href) => {
-          try {
-            return new URL(href, baseUrl).pathname;
-          } catch {
-            return href;
-          }
-        })
-        .map((path) => path.replace(/^\.\//, ""))
-        .filter((path) => path.toLowerCase().endsWith(".json"))
-        .map((path) => (path.startsWith("data/") ? path : `data/${path}`));
+    function normalizeQuizManifest(rawManifest) {
+      const list = Array.isArray(rawManifest)
+        ? rawManifest
+        : Array.isArray(rawManifest?.quizzes)
+          ? rawManifest.quizzes
+          : [];
+
+      return list
+        .filter((item) => item && typeof item === "object")
+        .map((item) => ({
+          path: typeof item.path === "string" ? item.path.trim() : "",
+          name: typeof item.name === "string" ? item.name.trim() : "",
+          description: typeof item.description === "string" ? item.description.trim() : ""
+        }))
+        .filter((item) => item.path && item.name);
     }
 
-    async function detectQuizFiles() {
-      const manifestFiles = [
-        "./data/quiz-list.json",
-        "./data/manifest.json",
-        "./data/index.json"
-      ];
+    async function loadQuizManifest() {
+      const response = await fetch("./manifest.json", { cache: "no-store" });
 
-      for (const manifestUrl of manifestFiles) {
-        try {
-          const response = await fetch(manifestUrl, { cache: "no-store" });
-          if (!response.ok) {
-            continue;
-          }
-
-          const list = await response.json();
-          if (!Array.isArray(list)) {
-            continue;
-          }
-
-          return list
-            .filter((item) => typeof item === "string" && item.toLowerCase().endsWith(".json"))
-            .map((item) => (item.startsWith("data/") ? item : `data/${item}`));
-        } catch (error) {
-          console.warn(`Manifest ${manifestUrl} ni bil dostopen:`, error);
-        }
+      if (!response.ok) {
+        throw new Error(`Manifest ni dostopen (${response.status}).`);
       }
 
-      const directoryUrl = "./data/";
-      try {
-        const response = await fetch(directoryUrl, { cache: "no-store" });
-        if (!response.ok) {
-          throw new Error(`Ni mogoče prebrati mape data (${response.status}).`);
-        }
+      const rawManifest = await response.json();
+      const quizzes = normalizeQuizManifest(rawManifest);
 
-        const contentType = response.headers.get("content-type") || "";
-        if (contentType.includes("application/json")) {
-          const list = await response.json();
-          if (Array.isArray(list)) {
-            return list
-              .filter((item) => typeof item === "string" && item.toLowerCase().endsWith(".json"))
-              .map((item) => (item.startsWith("data/") ? item : `data/${item}`));
-          }
-        }
-
-        const text = await response.text();
-        return parseDataDirectoryListing(text, response.url);
-      } catch (error) {
-        console.warn("Detekcija JSON datotek v mapi data ni uspela:", error);
-        return [];
+      if (!quizzes.length) {
+        throw new Error("Manifest ne vsebuje veljavnih vprašalnikov.");
       }
+
+      state.availableQuizFiles = quizzes;
+      return quizzes;
     }
 
-    function openQuizSelection(files) {
-      state.availableQuizFiles = files;
-      state.selectedQuizFile = files[0] || "";
-      els.quizFileSelect.innerHTML = files
-        .map((file) => `<option value="${file}">${file.replace(/^data\//, "")}</option>`)
-        .join("");
+    function openQuizSelection(quizzes) {
+      state.availableQuizFiles = quizzes;
+      state.selectedQuizFile = quizzes[0]?.path || "";
+      els.quizFileSelect.innerHTML = "";
+      for (const quiz of quizzes) {
+        const option = document.createElement("option");
+        option.value = quiz.path;
+        option.textContent = quiz.name;
+        els.quizFileSelect.append(option);
+      }
+      updateQuizDescription();
       els.quizSelectModal.classList.add("is-visible");
       els.quizSelectModal.setAttribute("aria-hidden", "false");
+    }
+
+    function updateQuizDescription() {
+      const selectedPath = els.quizFileSelect.value || state.selectedQuizFile;
+      const selectedQuiz = state.availableQuizFiles.find((quiz) => quiz.path === selectedPath) || null;
+
+      if (!selectedQuiz) {
+        els.quizDescription.querySelector(".control-title").textContent = "Opis vprašalnika";
+        els.quizDescription.querySelector(".control-subtitle").textContent = "Izberi vprašalnik, da prikažemo njegov opis.";
+        return;
+      }
+
+      els.quizDescription.querySelector(".control-title").textContent = selectedQuiz.name;
+      els.quizDescription.querySelector(".control-subtitle").textContent = selectedQuiz.description || "Brez opisa.";
     }
 
     function closeQuizSelection() {
@@ -1330,30 +1314,40 @@
     }
 
     async function loadSelectedQuiz() {
-      const selected = els.quizFileSelect.value || state.availableQuizFiles[0];
+      const selected = els.quizFileSelect.value || state.availableQuizFiles[0]?.path;
       if (selected) {
         closeQuizSelection();
         await loadCards(selected);
       } else {
         closeQuizSelection();
-        await loadCards();
+        await loadDefaultQuiz();
       }
     }
 
+    async function loadDefaultQuiz() {
+      const firstQuiz = state.availableQuizFiles[0];
+      if (firstQuiz?.path) {
+        await loadCards(firstQuiz.path);
+        return;
+      }
+
+      throw new Error("Manifest ne vsebuje nobenega vprašalnika.");
+    }
+
     async function initializeQuizLoader() {
-      const files = await detectQuizFiles();
+      const quizzes = await loadQuizManifest();
 
-      if (files.length === 1) {
-        await loadCards(files[0]);
+      if (quizzes.length === 1) {
+        await loadCards(quizzes[0].path);
         return;
       }
 
-      if (files.length > 1) {
-        openQuizSelection(files);
+      if (quizzes.length > 1) {
+        openQuizSelection(quizzes);
         return;
       }
 
-      await loadCards();
+      throw new Error("Manifest ne vsebuje vprašalnikov.");
     }
 
     function shuffleArray(items) {
@@ -1639,11 +1633,11 @@
       renderRoundSummary();
 
       if (!card) {
-        els.questionText.textContent = "Kartice niso na voljo.";
-        els.hintText.textContent = "Preveri datoteko geografija.json.";
-        els.answerText.textContent = "Ko bo baza prepoznana, se bodo odgovori prikazali tukaj.";
-        els.backQuestionText.textContent = "Vprašanje bo prikazano tukaj.";
-        return;
+      els.questionText.textContent = "Kartice niso na voljo.";
+      els.hintText.textContent = "Preveri datoteko manifest.json.";
+      els.answerText.textContent = "Ko bo baza prepoznana, se bodo odgovori prikazali tukaj.";
+      els.backQuestionText.textContent = "Vprašanje bo prikazano tukaj.";
+      return;
       }
 
       els.questionText.textContent = card.front;
@@ -1770,10 +1764,13 @@
       buildOrder();
       render();
       animateCardChange("reset");
-      els.fileLoadButton.classList.add("hidden");
     }
 
-    async function loadCards(source = "./geografija.json") {
+    async function loadCards(source) {
+      if (!source) {
+        throw new Error("Za nalaganje vprašalnika je potrebna pot do JSON datoteke.");
+      }
+
       try {
         const response = await fetch(source, { cache: "no-store" });
 
@@ -1793,7 +1790,6 @@
         state.cards = [];
         state.order = [];
         render();
-        els.fileLoadButton.classList.remove("hidden");
         console.error(error);
       }
     }
@@ -1825,30 +1821,6 @@
     els.knownButton.addEventListener("click", () => markCard("known"));
     els.unknownButton.addEventListener("click", () => markCard("unknown"));
     els.fullscreenButton.addEventListener("click", toggleFullscreen);
-    els.fileLoadButton.addEventListener("click", () => els.fileInput.click());
-    els.fileInput.addEventListener("change", async (event) => {
-      const [file] = event.target.files || [];
-
-      if (!file) {
-        return;
-      }
-
-      try {
-        const text = await file.text();
-        const cards = normalizeCards(JSON.parse(text));
-
-        if (!cards.length) {
-          throw new Error("Izbrana datoteka ne vsebuje prepoznanih kartic.");
-        }
-
-        hydrateCards(cards);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        event.target.value = "";
-      }
-    });
-
     els.confirmCancelButton.addEventListener("click", closeConfirmModal);
     els.confirmAcceptButton.addEventListener("click", () => {
       const action = state.confirmPendingAction;
@@ -1861,15 +1833,20 @@
       }
     });
 
+    els.quizFileSelect.addEventListener("change", updateQuizDescription);
     els.quizSelectAcceptButton.addEventListener("click", loadSelectedQuiz);
     els.quizSelectCancelButton.addEventListener("click", () => {
       closeQuizSelection();
-      loadCards();
+      loadDefaultQuiz().catch((error) => {
+        console.error(error);
+      });
     });
     els.quizSelectModal.addEventListener("click", (event) => {
       if (event.target === els.quizSelectModal) {
         closeQuizSelection();
-        loadCards();
+        loadDefaultQuiz().catch((error) => {
+          console.error(error);
+        });
       }
     });
 
@@ -1915,7 +1892,12 @@
       }
     });
 
-    initializeQuizLoader();
+    initializeQuizLoader().catch((error) => {
+      console.error(error);
+      state.cards = [];
+      state.order = [];
+      render();
+    });
   </script>
 </body>
 </html>

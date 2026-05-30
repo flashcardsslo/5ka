@@ -1,0 +1,14 @@
+{
+  "quizzes": [
+    {
+      "path": "data/geografija.json",
+      "name": "Geografija – komplet 1",
+      "description": "Vprašanja o Južni Ameriki, prebivalstvu in geografskih posebnostih."
+    },
+    {
+      "path": "data/geografija2.json",
+      "name": "Geografija – komplet 2",
+      "description": "Enak komplet vprašanj kot komplet 1, uporaben kot ločen vnos v manifestu."
+    }
+  ]
+}
