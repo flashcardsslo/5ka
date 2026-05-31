@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zapiski</title>
+  <style>
+    :root {
+      --bg-1: #f6efe3;
+      --bg-2: #d9efe8;
+      --panel: rgba(255, 252, 247, 0.88);
+      --panel-strong: rgba(255, 255, 255, 0.98);
+      --text: #17313a;
+      --muted: #5f747c;
+      --accent: #0f8b8d;
+      --accent-strong: #0b6e70;
+      --accent-soft: rgba(15, 139, 141, 0.14);
+      --shadow: 0 28px 70px rgba(23, 49, 58, 0.18);
+      --border: rgba(23, 49, 58, 0.1);
+      --font-display: "Trebuchet MS", "Avenir Next", "Segoe UI", sans-serif;
+      --font-body: "Segoe UI", "Calibri", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font-body);
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.7), transparent 30%),
+        radial-gradient(circle at right 15% bottom 10%, rgba(15, 139, 141, 0.14), transparent 25%),
+        linear-gradient(135deg, var(--bg-1), var(--bg-2));
+      padding: 18px;
+    }
+
+    .nav-fab {
+      position: fixed;
+      top: 18px;
+      right: 18px;
+      z-index: 50;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 120px;
+      padding: 11px 16px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.86);
+      border: 1px solid rgba(23, 49, 58, 0.12);
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 800;
+      box-shadow: 0 12px 28px rgba(23, 49, 58, 0.14);
+      backdrop-filter: blur(14px);
+      transition: transform 180ms ease, opacity 180ms ease;
+    }
+
+    .nav-fab:hover {
+      transform: translateY(-1px);
+    }
+
+    .nav-fab.is-hidden {
+      transform: translateY(-140%);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .shell {
+      width: min(1100px, 100%);
+      margin: 0 auto;
+      min-height: calc(100vh - 36px);
+      display: grid;
+      gap: 16px;
+      align-content: start;
+    }
+
+    .hero {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      padding: 22px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      display: grid;
+      gap: 10px;
+    }
+
+    .eyebrow {
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 0.72rem;
+      color: var(--accent-strong);
+      font-weight: 800;
+    }
+
+    h1 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 3vw, 3rem);
+      line-height: 1;
+    }
+
+    .lead {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.45;
+      max-width: 70ch;
+    }
+
+    .editor-card {
+      background: var(--panel-strong);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .editor-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .status {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .editor {
+      width: 100%;
+      min-height: min(68vh, 760px);
+      resize: vertical;
+      border: 1px solid rgba(23, 49, 58, 0.12);
+      border-radius: 24px;
+      padding: 18px;
+      font: inherit;
+      font-size: 1rem;
+      line-height: 1.6;
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    }
+
+    .editor:focus {
+      outline: 3px solid rgba(15, 139, 141, 0.18);
+      outline-offset: 2px;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    button {
+      border: 0;
+      border-radius: 16px;
+      padding: 12px 16px;
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 150ms ease, box-shadow 150ms ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    .primary {
+      background: linear-gradient(135deg, #ef7d57, #0f8b8d);
+      color: white;
+      box-shadow: 0 14px 30px rgba(15, 139, 141, 0.24);
+    }
+
+    .secondary {
+      background: rgba(23, 49, 58, 0.07);
+      color: var(--text);
+    }
+
+    @media (max-width: 760px) {
+      body {
+        padding: 12px;
+      }
+
+      .hero,
+      .editor-card {
+        padding: 16px;
+        border-radius: 22px;
+      }
+
+      .editor {
+        min-height: 62vh;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="nav-fab" id="indexLink" href="index.html">Kartice</a>
+
+  <main class="shell">
+    <section class="hero">
+      <p class="eyebrow">Zapiski</p>
+      <h1>Zapiske</h1>
+      <p class="lead">Napiši karkoli želiš. Besedilo se shrani lokalno v brskalnik in ostane na voljo tudi naslednjič.</p>
+    </section>
+
+    <section class="editor-card">
+      <div class="editor-toolbar">
+        <span class="status" id="saveStatus">Ni shranjeno.</span>
+        <div class="actions">
+          <button class="secondary" id="clearButton" type="button">Počisti</button>
+          <button class="primary" id="saveButton" type="button">Shrani</button>
+        </div>
+      </div>
+      <textarea id="notesText" class="editor" spellcheck="true" placeholder="Piši tukaj..."></textarea>
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "geografske-notes-text";
+
+    const elements = {
+      notesText: document.getElementById("notesText"),
+      saveButton: document.getElementById("saveButton"),
+      clearButton: document.getElementById("clearButton"),
+      saveStatus: document.getElementById("saveStatus"),
+      indexLink: document.getElementById("indexLink")
+    };
+
+    let hideTimer = null;
+    let lastScrollTop = window.scrollY;
+
+    function setStatus(message) {
+      elements.saveStatus.textContent = message;
+    }
+
+    function loadNotes() {
+      const saved = localStorage.getItem(STORAGE_KEY) || "";
+      elements.notesText.value = saved;
+      setStatus(saved ? "Zapis je naložen." : "Ni shranjenega zapisa.");
+    }
+
+    function saveNotes() {
+      localStorage.setItem(STORAGE_KEY, elements.notesText.value);
+      setStatus("Shranjeno.");
+    }
+
+    function clearNotes() {
+      elements.notesText.value = "";
+      setStatus("Pripravljeno za nov zapis.");
+    }
+
+    function updateFabVisibility() {
+      if (!window.matchMedia("(max-width: 760px)").matches) {
+        elements.indexLink.classList.remove("is-hidden");
+        return;
+      }
+
+      const currentScrollTop = window.scrollY || document.documentElement.scrollTop;
+
+      if (currentScrollTop <= 8) {
+        elements.indexLink.classList.remove("is-hidden");
+      } else if (currentScrollTop > lastScrollTop) {
+        elements.indexLink.classList.add("is-hidden");
+      } else {
+        elements.indexLink.classList.remove("is-hidden");
+      }
+
+      lastScrollTop = currentScrollTop;
+      clearTimeout(hideTimer);
+      hideTimer = setTimeout(() => {
+        if (window.matchMedia("(max-width: 760px)").matches && (window.scrollY || document.documentElement.scrollTop) > 8) {
+          elements.indexLink.classList.add("is-hidden");
+        }
+      }, 160);
+    }
+
+    elements.saveButton.addEventListener("click", saveNotes);
+    elements.clearButton.addEventListener("click", clearNotes);
+    elements.notesText.addEventListener("keydown", (event) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
+        event.preventDefault();
+        saveNotes();
+      }
+    });
+
+    window.addEventListener("scroll", updateFabVisibility, { passive: true });
+    window.addEventListener("resize", updateFabVisibility);
+    loadNotes();
+    updateFabVisibility();
+  </script>
+</body>
+</html>
