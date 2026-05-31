@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+<meta charset="UTF-8">
+<title>Quiz Admin Dashboard</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 text-gray-800">
+
+<!-- LOGIN -->
+<div id="login" class="h-screen flex items-center justify-center">
+    <div class="bg-white p-6 rounded-xl shadow w-80">
+        <h1 class="text-xl font-bold mb-4">Admin login</h1>
+        <input id="pass" type="password" placeholder="Geslo"
+            class="w-full border p-2 rounded mb-3">
+        <button onclick="checkPass()"
+            class="w-full bg-black text-white p-2 rounded">
+            Vstop
+        </button>
+    </div>
+</div>
+
+<!-- APP -->
+<div id="app" class="hidden h-screen flex">
+
+<!-- SIDEBAR -->
+<div class="w-72 bg-white border-r p-4 overflow-y-auto">
+    <h2 class="text-lg font-bold mb-3">📚 Kvizi</h2>
+
+    <div id="quizList" class="space-y-2"></div>
+
+    <hr class="my-4">
+
+    <h3 class="font-semibold">➕ Nov kviz</h3>
+    <input id="newName" placeholder="Ime" class="border p-1 w-full mt-1 rounded">
+    <input id="newDesc" placeholder="Opis" class="border p-1 w-full mt-1 rounded">
+    <input id="newPath" placeholder="data/quiz.json" class="border p-1 w-full mt-1 rounded">
+
+    <button onclick="addQuiz()"
+        class="mt-2 w-full bg-black text-white p-2 rounded">
+        Dodaj
+    </button>
+
+    <hr class="my-4">
+
+    <input id="token" type="password" placeholder="GitHub token"
+        class="border p-1 w-full rounded">
+    <button onclick="saveToken()"
+        class="mt-2 w-full bg-gray-800 text-white p-2 rounded">
+        Shrani token
+    </button>
+</div>
+
+<!-- MAIN -->
+<div class="flex-1 p-6 overflow-y-auto">
+
+    <div id="welcome" class="text-gray-500">
+        Izberi kviz
+    </div>
+
+    <div id="editor" class="hidden">
+
+        <h1 id="quizTitle" class="text-2xl font-bold"></h1>
+        <p id="quizDesc" class="text-gray-500 mb-4"></p>
+
+        <h2 class="text-lg font-semibold mb-2">Vprašanja</h2>
+        <div id="questions" class="space-y-3"></div>
+
+        <button onclick="addQuestion()"
+            class="mt-4 bg-black text-white px-4 py-2 rounded">
+            ➕ Dodaj vprašanje
+        </button>
+
+        <button onclick="saveQuiz()"
+            class="mt-4 ml-2 bg-green-600 text-white px-4 py-2 rounded">
+            💾 Shrani
+        </button>
+    </div>
+
+</div>
+</div>
+
+<script>
+
+const PASSWORD = "1234";
+const REPO = "flashcardsslo/5ka";
+
+let githubToken = "";
+let manifest = null;
+let currentQuizIndex = null;
+
+let quizCache = {};
+let shaCache = {}; // <-- pomembno
+
+function checkPass(){
+    if(document.getElementById("pass").value === PASSWORD){
+        document.getElementById("login").classList.add("hidden");
+        document.getElementById("app").classList.remove("hidden");
+        loadManifest();
+    } else alert("Napačno geslo");
+}
+
+function saveToken(){
+    githubToken = document.getElementById("token").value;
+    alert("Token shranjen (samo v tej seji)");
+}
+
+async function loadManifest(){
+    const res = await fetch("manifest.json");
+    manifest = await res.json();
+    renderSidebar();
+}
+
+function renderSidebar(){
+    const list = document.getElementById("quizList");
+    list.innerHTML = "";
+
+    manifest.quizzes.forEach((q,i)=>{
+        list.innerHTML += `
+        <div onclick="openQuiz(${i})"
+            class="p-2 rounded bg-gray-100 hover:bg-gray-200 cursor-pointer">
+            <div class="font-semibold">${q.name}</div>
+            <div class="text-xs text-gray-500">${q.description}</div>
+        </div>`;
+    });
+}
+
+async function openQuiz(i){
+
+    currentQuizIndex = i;
+    const quiz = manifest.quizzes[i];
+
+    if(!quizCache[quiz.path]){
+        const res = await fetch(quiz.path);
+        quizCache[quiz.path] = await res.json();
+    }
+
+    currentQuizData = quizCache[quiz.path];
+
+    document.getElementById("welcome").classList.add("hidden");
+    document.getElementById("editor").classList.remove("hidden");
+
+    document.getElementById("quizTitle").innerText = quiz.name;
+    document.getElementById("quizDesc").innerText = quiz.description;
+
+    renderQuestions();
+}
+
+function renderQuestions(){
+    const box = document.getElementById("questions");
+    box.innerHTML = "";
+
+    currentQuizData.forEach((q,i)=>{
+        box.innerHTML += `
+        <div class="bg-white p-3 rounded shadow">
+
+            <input class="w-full border p-1 mb-1"
+                value="${q.front}"
+                onchange="currentQuizData[${i}].front=this.value">
+
+            <input class="w-full border p-1 mb-1"
+                value="${q.back}"
+                onchange="currentQuizData[${i}].back=this.value">
+
+            <input class="w-full border p-1"
+                value="${q.hint}"
+                onchange="currentQuizData[${i}].hint=this.value">
+
+            <button onclick="deleteQ(${i})"
+                class="text-red-500 text-sm mt-1">
+                izbriši
+            </button>
+
+        </div>`;
+    });
+}
+
+function addQuiz(){
+    manifest.quizzes.push({
+        name: newName.value,
+        description: newDesc.value,
+        path: newPath.value
+    });
+    renderSidebar();
+}
+
+function addQuestion(){
+    currentQuizData.push({
+        number: currentQuizData.length + 1,
+        front: "",
+        back: "",
+        hint: ""
+    });
+    renderQuestions();
+}
+
+function deleteQ(i){
+    currentQuizData.splice(i,1);
+    renderQuestions();
+}
+
+async function saveQuiz(){
+
+    await saveFile("manifest.json", manifest);
+
+    const quiz = manifest.quizzes[currentQuizIndex];
+    await saveFile(quiz.path, currentQuizData);
+
+    alert("Shranjeno v GitHub!");
+}
+
+/* =========================
+   GITHUB SAVE (FIXED)
+========================= */
+
+async function saveFile(path, content){
+
+    const api = `https://api.github.com/repos/${REPO}/contents/${path}`;
+
+    // 1. get SHA
+    const getRes = await fetch(api, {
+        headers: {
+            "Authorization": `Bearer ${githubToken}`,
+            "Accept": "application/vnd.github+json"
+        }
+    });
+
+    const fileData = await getRes.json();
+
+    shaCache[path] = fileData.sha;
+
+    // 2. encode
+    const encoded = btoa(
+        unescape(
+            encodeURIComponent(JSON.stringify(content, null, 2))
+        )
+    );
+
+    // 3. update
+    const updateRes = await fetch(api, {
+        method: "PUT",
+        headers: {
+            "Authorization": `Bearer ${githubToken}`,
+            "Accept": "application/vnd.github+json",
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            message: "update quiz data",
+            content: encoded,
+            sha: fileData.sha
+        })
+    });
+
+    if(!updateRes.ok){
+        console.error(await updateRes.text());
+        alert("Napaka pri shranjevanju!");
+    }
+}
+
+</script>
+
+</body>
+</html>
