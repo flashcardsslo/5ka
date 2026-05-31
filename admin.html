@@ -1,264 +1,1171 @@
 <!DOCTYPE html>
 <html lang="sl">
 <head>
-<meta charset="UTF-8">
-<title>Quiz Admin Dashboard</title>
-<script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Urejanje vprašalnikov</title>
+  <style>
+    :root {
+      --bg-1: #f6efe3;
+      --bg-2: #d9efe8;
+      --panel: rgba(255, 252, 247, 0.88);
+      --panel-strong: rgba(255, 255, 255, 0.98);
+      --text: #17313a;
+      --muted: #5f747c;
+      --accent: #0f8b8d;
+      --accent-strong: #0b6e70;
+      --accent-soft: rgba(15, 139, 141, 0.14);
+      --shadow: 0 28px 70px rgba(23, 49, 58, 0.18);
+      --border: rgba(23, 49, 58, 0.1);
+      --good: #1f9d6c;
+      --danger: #b25555;
+      --font-display: "Trebuchet MS", "Avenir Next", "Segoe UI", sans-serif;
+      --font-body: "Segoe UI", "Calibri", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font-body);
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.7), transparent 30%),
+        radial-gradient(circle at right 15% bottom 10%, rgba(15, 139, 141, 0.14), transparent 25%),
+        linear-gradient(135deg, var(--bg-1), var(--bg-2));
+      padding: 18px;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .nav-links {
+      position: fixed;
+      top: 18px;
+      right: 18px;
+      z-index: 50;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .nav-fab {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 112px;
+      padding: 11px 16px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.86);
+      border: 1px solid rgba(23, 49, 58, 0.12);
+      color: var(--text);
+      font-weight: 800;
+      box-shadow: 0 12px 28px rgba(23, 49, 58, 0.14);
+      backdrop-filter: blur(14px);
+      transition: transform 180ms ease, opacity 180ms ease;
+    }
+
+    .nav-fab:hover {
+      transform: translateY(-1px);
+    }
+
+    .shell {
+      width: min(1380px, 100%);
+      margin: 0 auto;
+      display: grid;
+      gap: 16px;
+    }
+
+    .hero,
+    .panel,
+    .card-item {
+      backdrop-filter: blur(18px);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      background: var(--panel);
+      border-radius: 28px;
+      padding: 22px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .eyebrow {
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 0.72rem;
+      color: var(--accent-strong);
+      font-weight: 800;
+    }
+
+    h1 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 3vw, 3rem);
+      line-height: 1;
+    }
+
+    .lead {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.45;
+      max-width: 74ch;
+    }
+
+    .status-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 999px;
+      padding: 8px 12px;
+      background: var(--accent-soft);
+      color: var(--accent-strong);
+      font-weight: 700;
+      font-size: 0.84rem;
+    }
+
+    .tag.good {
+      background: rgba(31, 157, 108, 0.12);
+      color: var(--good);
+    }
+
+    .tag.warn {
+      background: rgba(239, 125, 87, 0.12);
+      color: #b85a34;
+    }
+
+    .toolbar {
+      background: var(--panel-strong);
+      border-radius: 28px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .toolbar-copy {
+      display: grid;
+      gap: 4px;
+    }
+
+    .toolbar-title {
+      font-weight: 800;
+    }
+
+    .toolbar-subtitle {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 16px;
+      padding: 12px 16px;
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 150ms ease, box-shadow 150ms ease, opacity 150ms ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    .primary {
+      background: linear-gradient(135deg, #ef7d57, #0f8b8d);
+      color: white;
+      box-shadow: 0 14px 30px rgba(15, 139, 141, 0.24);
+    }
+
+    .secondary {
+      background: rgba(23, 49, 58, 0.07);
+      color: var(--text);
+    }
+
+    .danger {
+      background: linear-gradient(135deg, #d86c5f, #b25555);
+      color: white;
+      box-shadow: 0 14px 30px rgba(178, 85, 85, 0.22);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 320px minmax(0, 1fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--panel);
+      border-radius: 28px;
+      padding: 16px;
+      display: grid;
+      gap: 14px;
+      min-height: 0;
+    }
+
+    .panel h2 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+    }
+
+    .panel-copy {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: 0.92rem;
+    }
+
+    .quiz-list {
+      display: grid;
+      gap: 10px;
+      max-height: min(72vh, 860px);
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .quiz-item {
+      width: 100%;
+      text-align: left;
+      background:
+        radial-gradient(circle at top right, rgba(15, 139, 141, 0.08), transparent 48%),
+        radial-gradient(circle at bottom left, rgba(239, 125, 87, 0.08), transparent 55%),
+        rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(23, 49, 58, 0.1);
+      border-radius: 22px;
+      padding: 14px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .quiz-item.is-active {
+      border-color: rgba(15, 139, 141, 0.34);
+      box-shadow: 0 16px 36px rgba(15, 139, 141, 0.16);
+    }
+
+    .quiz-item-name {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: 1rem;
+      line-height: 1.15;
+    }
+
+    .quiz-item-path,
+    .quiz-item-desc {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.4;
+      font-size: 0.88rem;
+      word-break: break-word;
+    }
+
+    .editor {
+      background: var(--panel-strong);
+      border-radius: 28px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      display: grid;
+      gap: 16px;
+      min-height: 0;
+    }
+
+    .editor-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .field label {
+      font-size: 0.82rem;
+      color: var(--muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .field input,
+    .field textarea {
+      width: 100%;
+      border-radius: 16px;
+      border: 1px solid rgba(23, 49, 58, 0.12);
+      background: rgba(255, 255, 255, 0.92);
+      color: var(--text);
+      font: inherit;
+      padding: 12px 14px;
+      outline: none;
+    }
+
+    .field textarea {
+      min-height: 46px;
+      resize: vertical;
+      line-height: 1.5;
+    }
+
+    .field input:focus,
+    .field textarea:focus {
+      outline: 3px solid rgba(15, 139, 141, 0.18);
+      outline-offset: 1px;
+    }
+
+    .field.span-2 {
+      grid-column: span 2;
+    }
+
+    .field.span-3 {
+      grid-column: span 3;
+    }
+
+    .section-head {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+    }
+
+    .cards-tools {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .cards-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .card-item {
+      background: rgba(255, 255, 255, 0.92);
+      border-radius: 24px;
+      border: 1px solid rgba(23, 49, 58, 0.1);
+      padding: 12px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .card-item summary {
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-weight: 800;
+    }
+
+    .card-item summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .card-summary-muted {
+      font-weight: 600;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .card-grid .span-2 {
+      grid-column: span 2;
+    }
+
+    .card-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .mini-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .footer-note {
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+
+    .empty-state {
+      padding: 18px;
+      border-radius: 20px;
+      background: rgba(23, 49, 58, 0.04);
+      border: 1px dashed rgba(23, 49, 58, 0.14);
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 1100px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .quiz-list {
+        max-height: none;
+      }
+    }
+
+    @media (max-width: 760px) {
+      body {
+        padding: 12px;
+      }
+
+      .hero,
+      .toolbar,
+      .panel,
+      .editor {
+        padding: 14px;
+        border-radius: 22px;
+      }
+
+      .editor-grid,
+      .card-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .field.span-2,
+      .field.span-3,
+      .card-grid .span-2 {
+        grid-column: span 1;
+      }
+
+      .nav-links {
+        top: 12px;
+        right: 12px;
+      }
+
+      .nav-fab {
+        min-width: 98px;
+        padding: 10px 14px;
+      }
+    }
+  </style>
 </head>
+<body>
+  <div class="nav-links">
+    <a class="nav-fab" href="index.html">Kartice</a>
+    <a class="nav-fab" href="notes.html">Zapiski</a>
+  </div>
 
-<body class="bg-gray-100 text-gray-800">
+  <main class="shell">
+    <section class="hero">
+      <p class="eyebrow">Admin</p>
+      <h1>Urejanje vprašalnikov</h1>
+      <p class="lead">Odpri mapo projekta, izberi vprašalnik iz manifesta, ga uredi ali ustvari novega. Spremembe lahko shraniš neposredno v datoteke ali jih izvoziš, če brskalnik ne podpira zapisovanja.</p>
+      <div class="status-row">
+        <span class="tag good" id="workspaceTag">Brez odprte mape</span>
+        <span class="tag" id="manifestTag">Manifest: nalaganje ...</span>
+        <span class="tag" id="dirtyTag">Spremembe: ne</span>
+      </div>
+    </section>
 
-<!-- LOGIN -->
-<div id="login" class="h-screen flex items-center justify-center">
-    <div class="bg-white p-6 rounded-xl shadow w-80">
-        <h1 class="text-xl font-bold mb-4">Admin login</h1>
-        <input id="pass" type="password" placeholder="Geslo"
-            class="w-full border p-2 rounded mb-3">
-        <button onclick="checkPass()"
-            class="w-full bg-black text-white p-2 rounded">
-            Vstop
-        </button>
-    </div>
-</div>
+    <section class="toolbar">
+      <div class="toolbar-copy">
+        <span class="toolbar-title">Nadzor</span>
+        <span class="toolbar-subtitle" id="statusText">Naloži manifest in izberi vprašalnik.</span>
+      </div>
+      <div class="actions">
+        <button class="secondary" id="openWorkspaceButton" type="button">Odpri mapo projekta</button>
+        <button class="secondary" id="reloadButton" type="button">Osveži</button>
+        <button class="secondary" id="newQuizButton" type="button">Nov vprašalnik</button>
+        <button class="primary" id="saveButton" type="button">Shrani</button>
+      </div>
+    </section>
 
-<!-- APP -->
-<div id="app" class="hidden h-screen flex">
+    <section class="layout">
+      <aside class="panel">
+        <div class="section-head">
+          <h2>Vprašalniki</h2>
+        </div>
+        <p class="panel-copy">Klikni vprašalnik za urejanje njegovega manifesta in kartic.</p>
+        <div class="quiz-list" id="quizList"></div>
+      </aside>
 
-<!-- SIDEBAR -->
-<div class="w-72 bg-white border-r p-4 overflow-y-auto">
-    <h2 class="text-lg font-bold mb-3">📚 Kvizi</h2>
+      <section class="editor">
+        <div class="section-head">
+          <h2>Podrobnosti</h2>
+          <div class="cards-tools">
+            <button class="secondary" id="addCardButton" type="button">Dodaj kartico</button>
+          </div>
+        </div>
 
-    <div id="quizList" class="space-y-2"></div>
+        <div class="editor-grid">
+          <div class="field span-2">
+            <label for="quizName">Ime vprašalnika</label>
+            <input id="quizName" type="text" placeholder="Ime vprašalnika">
+          </div>
+          <div class="field">
+            <label for="quizPath">Pot datoteke</label>
+            <input id="quizPath" type="text" placeholder="data/nov-vprasalnik.json">
+          </div>
+          <div class="field span-3">
+            <label for="quizDescription">Opis</label>
+            <textarea id="quizDescription" placeholder="Kratek opis vprašalnika"></textarea>
+          </div>
+        </div>
 
-    <hr class="my-4">
+        <div class="section-head">
+          <h2>Kartice</h2>
+          <div class="cards-tools">
+            <span class="tag" id="cardCountTag">0 kartic</span>
+          </div>
+        </div>
 
-    <h3 class="font-semibold">➕ Nov kviz</h3>
-    <input id="newName" placeholder="Ime" class="border p-1 w-full mt-1 rounded">
-    <input id="newDesc" placeholder="Opis" class="border p-1 w-full mt-1 rounded">
-    <input id="newPath" placeholder="data/quiz.json" class="border p-1 w-full mt-1 rounded">
+        <div class="cards-list" id="cardsList"></div>
 
-    <button onclick="addQuiz()"
-        class="mt-2 w-full bg-black text-white p-2 rounded">
-        Dodaj
-    </button>
+        <div class="empty-state" id="emptyState" hidden>
+          Ni izbranega vprašalnika. Ustvari novega ali izberi obstoječega na levi.
+        </div>
 
-    <hr class="my-4">
+        <p class="footer-note">Ob prvi uporabi priporočam, da klikneš <strong>Odpri mapo projekta</strong>, da se shranjevanje izvede neposredno v tvoje datoteke.</p>
+      </section>
+    </section>
+  </main>
 
-    <input id="token" type="password" placeholder="GitHub token"
-        class="border p-1 w-full rounded">
-    <button onclick="saveToken()"
-        class="mt-2 w-full bg-gray-800 text-white p-2 rounded">
-        Shrani token
-    </button>
-</div>
+  <script>
+    const state = {
+      workspaceHandle: null,
+      manifest: { quizzes: [] },
+      quizzes: [],
+      selectedIndex: -1,
+      currentQuiz: null,
+      sourcePath: "",
+      dirty: false,
+      loading: false,
+      readOnlyFallback: true
+    };
 
-<!-- MAIN -->
-<div class="flex-1 p-6 overflow-y-auto">
+    const els = {
+      workspaceTag: document.getElementById("workspaceTag"),
+      manifestTag: document.getElementById("manifestTag"),
+      dirtyTag: document.getElementById("dirtyTag"),
+      statusText: document.getElementById("statusText"),
+      openWorkspaceButton: document.getElementById("openWorkspaceButton"),
+      reloadButton: document.getElementById("reloadButton"),
+      newQuizButton: document.getElementById("newQuizButton"),
+      saveButton: document.getElementById("saveButton"),
+      quizList: document.getElementById("quizList"),
+      quizName: document.getElementById("quizName"),
+      quizPath: document.getElementById("quizPath"),
+      quizDescription: document.getElementById("quizDescription"),
+      cardsList: document.getElementById("cardsList"),
+      addCardButton: document.getElementById("addCardButton"),
+      cardCountTag: document.getElementById("cardCountTag"),
+      emptyState: document.getElementById("emptyState")
+    };
 
-    <div id="welcome" class="text-gray-500">
-        Izberi kviz
-    </div>
-
-    <div id="editor" class="hidden">
-
-        <h1 id="quizTitle" class="text-2xl font-bold"></h1>
-        <p id="quizDesc" class="text-gray-500 mb-4"></p>
-
-        <h2 class="text-lg font-semibold mb-2">Vprašanja</h2>
-        <div id="questions" class="space-y-3"></div>
-
-        <button onclick="addQuestion()"
-            class="mt-4 bg-black text-white px-4 py-2 rounded">
-            ➕ Dodaj vprašanje
-        </button>
-
-        <button onclick="saveQuiz()"
-            class="mt-4 ml-2 bg-green-600 text-white px-4 py-2 rounded">
-            💾 Shrani
-        </button>
-    </div>
-
-</div>
-</div>
-
-<script>
-
-const PASSWORD = "1234";
-const REPO = "flashcardsslo/5ka";
-
-let githubToken = "";
-let manifest = null;
-let currentQuizIndex = null;
-
-let quizCache = {};
-let shaCache = {}; // <-- pomembno
-
-function checkPass(){
-    if(document.getElementById("pass").value === PASSWORD){
-        document.getElementById("login").classList.add("hidden");
-        document.getElementById("app").classList.remove("hidden");
-        loadManifest();
-    } else alert("Napačno geslo");
-}
-
-function saveToken(){
-    githubToken = document.getElementById("token").value;
-    alert("Token shranjen (samo v tej seji)");
-}
-
-async function loadManifest(){
-    const res = await fetch("manifest.json");
-    manifest = await res.json();
-    renderSidebar();
-}
-
-function renderSidebar(){
-    const list = document.getElementById("quizList");
-    list.innerHTML = "";
-
-    manifest.quizzes.forEach((q,i)=>{
-        list.innerHTML += `
-        <div onclick="openQuiz(${i})"
-            class="p-2 rounded bg-gray-100 hover:bg-gray-200 cursor-pointer">
-            <div class="font-semibold">${q.name}</div>
-            <div class="text-xs text-gray-500">${q.description}</div>
-        </div>`;
-    });
-}
-
-async function openQuiz(i){
-
-    currentQuizIndex = i;
-    const quiz = manifest.quizzes[i];
-
-    if(!quizCache[quiz.path]){
-        const res = await fetch(quiz.path);
-        quizCache[quiz.path] = await res.json();
+    function slugify(value) {
+      return String(value || "vprasalnik")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "") || "vprasalnik";
     }
 
-    currentQuizData = quizCache[quiz.path];
-
-    document.getElementById("welcome").classList.add("hidden");
-    document.getElementById("editor").classList.remove("hidden");
-
-    document.getElementById("quizTitle").innerText = quiz.name;
-    document.getElementById("quizDesc").innerText = quiz.description;
-
-    renderQuestions();
-}
-
-function renderQuestions(){
-    const box = document.getElementById("questions");
-    box.innerHTML = "";
-
-    currentQuizData.forEach((q,i)=>{
-        box.innerHTML += `
-        <div class="bg-white p-3 rounded shadow">
-
-            <input class="w-full border p-1 mb-1"
-                value="${q.front}"
-                onchange="currentQuizData[${i}].front=this.value">
-
-            <input class="w-full border p-1 mb-1"
-                value="${q.back}"
-                onchange="currentQuizData[${i}].back=this.value">
-
-            <input class="w-full border p-1"
-                value="${q.hint}"
-                onchange="currentQuizData[${i}].hint=this.value">
-
-            <button onclick="deleteQ(${i})"
-                class="text-red-500 text-sm mt-1">
-                izbriši
-            </button>
-
-        </div>`;
-    });
-}
-
-function addQuiz(){
-    manifest.quizzes.push({
-        name: newName.value,
-        description: newDesc.value,
-        path: newPath.value
-    });
-    renderSidebar();
-}
-
-function addQuestion(){
-    currentQuizData.push({
-        number: currentQuizData.length + 1,
-        front: "",
-        back: "",
-        hint: ""
-    });
-    renderQuestions();
-}
-
-function deleteQ(i){
-    currentQuizData.splice(i,1);
-    renderQuestions();
-}
-
-async function saveQuiz(){
-
-    await saveFile("manifest.json", manifest);
-
-    const quiz = manifest.quizzes[currentQuizIndex];
-    await saveFile(quiz.path, currentQuizData);
-
-    alert("Shranjeno v GitHub!");
-}
-
-/* =========================
-   GITHUB SAVE (FIXED)
-========================= */
-
-async function saveFile(path, content){
-
-    const api = `https://api.github.com/repos/${REPO}/contents/${path}`;
-
-    // 1. get SHA
-    const getRes = await fetch(api, {
-        headers: {
-            "Authorization": `Bearer ${githubToken}`,
-            "Accept": "application/vnd.github+json"
-        }
-    });
-
-    const fileData = await getRes.json();
-
-    shaCache[path] = fileData.sha;
-
-    // 2. encode
-    const encoded = btoa(
-        unescape(
-            encodeURIComponent(JSON.stringify(content, null, 2))
-        )
-    );
-
-    // 3. update
-    const updateRes = await fetch(api, {
-        method: "PUT",
-        headers: {
-            "Authorization": `Bearer ${githubToken}`,
-            "Accept": "application/vnd.github+json",
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            message: "update quiz data",
-            content: encoded,
-            sha: fileData.sha
-        })
-    });
-
-    if(!updateRes.ok){
-        console.error(await updateRes.text());
-        alert("Napaka pri shranjevanju!");
+    function defaultQuizPath(name) {
+      return `data/${slugify(name || "nov-vprasalnik")}.json`;
     }
-}
 
-</script>
+    function normalizeManifest(rawManifest) {
+      const list = Array.isArray(rawManifest)
+        ? rawManifest
+        : Array.isArray(rawManifest?.quizzes)
+          ? rawManifest.quizzes
+          : [];
 
+      return list
+        .filter((item) => item && typeof item === "object")
+        .map((item) => ({
+          path: typeof item.path === "string" ? item.path.trim() : "",
+          name: typeof item.name === "string" ? item.name.trim() : "",
+          description: typeof item.description === "string" ? item.description.trim() : ""
+        }))
+        .filter((item) => item.path && item.name);
+    }
+
+    function normalizeCards(rawCards) {
+      if (!Array.isArray(rawCards)) {
+        return [];
+      }
+
+      return rawCards
+        .filter((card) => card && typeof card === "object")
+        .map((card, index) => ({
+          number: Number.isFinite(Number(card.number)) ? Number(card.number) : index + 1,
+          front: typeof card.front === "string" ? card.front : "",
+          back: typeof card.back === "string" ? card.back : "",
+          hint: typeof card.hint === "string" ? card.hint : "",
+          imageUrl: typeof card.imageUrl === "string" ? card.imageUrl : "",
+          altText: typeof card.altText === "string" ? card.altText : ""
+        }));
+    }
+
+    function serializeCards(cards) {
+      return cards.map((card, index) => ({
+        number: index + 1,
+        front: card.front.trim(),
+        back: card.back.trim(),
+        hint: card.hint.trim(),
+        ...(card.imageUrl.trim() ? { imageUrl: card.imageUrl.trim() } : {}),
+        ...(card.altText.trim() ? { altText: card.altText.trim() } : {})
+      }));
+    }
+
+    function setStatus(message) {
+      els.statusText.textContent = message;
+    }
+
+    function setDirty(isDirty) {
+      state.dirty = isDirty;
+      els.dirtyTag.textContent = `Spremembe: ${isDirty ? "da" : "ne"}`;
+      els.dirtyTag.className = `tag${isDirty ? " warn" : ""}`;
+    }
+
+    function updateWorkspaceTag() {
+      els.workspaceTag.textContent = state.workspaceHandle ? "Mapa odprta" : "Brez odprte mape";
+      els.workspaceTag.className = `tag${state.workspaceHandle ? " good" : ""}`;
+      els.manifestTag.textContent = state.manifest.quizzes.length
+        ? `Manifest: ${state.manifest.quizzes.length} vnosov`
+        : "Manifest: prazen";
+    }
+
+    function confirmDiscard() {
+      if (!state.dirty) {
+        return true;
+      }
+
+      return confirm("Spremembe še niso shranjene. Želiš nadaljevati?");
+    }
+
+    function createBlankQuiz() {
+      return {
+        path: defaultQuizPath("nov-vprasalnik"),
+        name: "Nov vprašalnik",
+        description: "",
+        cards: [{ number: 1, front: "", back: "", hint: "", imageUrl: "", altText: "" }]
+      };
+    }
+
+    async function resolveDirectoryHandle(root, parts, create = false) {
+      let current = root;
+      for (let index = 0; index < parts.length - 1; index += 1) {
+        current = await current.getDirectoryHandle(parts[index], { create });
+      }
+      return { directoryHandle: current, fileName: parts[parts.length - 1] };
+    }
+
+    async function readText(path) {
+      if (state.workspaceHandle) {
+        const parts = path.split("/").filter(Boolean);
+        const { directoryHandle, fileName } = await resolveDirectoryHandle(state.workspaceHandle, parts, false);
+        const fileHandle = await directoryHandle.getFileHandle(fileName);
+        const file = await fileHandle.getFile();
+        return file.text();
+      }
+
+      const response = await fetch(`./${path}`, { cache: "no-store" });
+      if (!response.ok) {
+        throw new Error(`Datoteke ${path} ni mogoče prebrati (${response.status}).`);
+      }
+      return response.text();
+    }
+
+    async function writeText(path, text) {
+      if (state.workspaceHandle) {
+        const parts = path.split("/").filter(Boolean);
+        const { directoryHandle, fileName } = await resolveDirectoryHandle(state.workspaceHandle, parts, true);
+        const fileHandle = await directoryHandle.getFileHandle(fileName, { create: true });
+        const writable = await fileHandle.createWritable();
+        await writable.write(text);
+        await writable.close();
+        return;
+      }
+
+      const blob = new Blob([text], { type: "application/json;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = path.split("/").pop();
+      anchor.click();
+      URL.revokeObjectURL(url);
+    }
+
+    async function readJson(path) {
+      return JSON.parse(await readText(path));
+    }
+
+    async function saveJson(path, data) {
+      await writeText(path, `${JSON.stringify(data, null, 2)}\n`);
+    }
+
+    function getCurrentQuiz() {
+      return state.currentQuiz;
+    }
+
+    function setCurrentQuiz(quiz, sourcePath = "") {
+      state.currentQuiz = quiz;
+      state.sourcePath = sourcePath;
+      state.selectedIndex = state.quizzes.findIndex((item) => item.path === quiz.path);
+      if (state.selectedIndex < 0) {
+        state.selectedIndex = -1;
+      }
+      setDirty(false);
+      render();
+    }
+
+    function updateCurrentQuizFromInputs() {
+      if (!state.currentQuiz) {
+        return;
+      }
+
+      state.currentQuiz.name = els.quizName.value;
+      state.currentQuiz.path = els.quizPath.value;
+      state.currentQuiz.description = els.quizDescription.value;
+    }
+
+    function updateQuizList() {
+      els.quizList.replaceChildren();
+
+      if (!state.quizzes.length) {
+        const empty = document.createElement("div");
+        empty.className = "empty-state";
+        empty.textContent = "Manifest še nima vprašalnikov.";
+        els.quizList.append(empty);
+        return;
+      }
+
+      state.quizzes.forEach((quiz, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `quiz-item${index === state.selectedIndex ? " is-active" : ""}`;
+
+        const title = document.createElement("p");
+        title.className = "quiz-item-name";
+        title.textContent = quiz.name;
+
+        const path = document.createElement("p");
+        path.className = "quiz-item-path";
+        path.textContent = quiz.path;
+
+        const description = document.createElement("p");
+        description.className = "quiz-item-desc";
+        description.textContent = quiz.description || "Brez opisa.";
+
+        button.append(title, path, description);
+        button.addEventListener("click", () => {
+          if (!confirmDiscard()) {
+            return;
+          }
+          loadQuizByIndex(index).catch((error) => {
+            console.error(error);
+            setStatus(error.message);
+          });
+        });
+        els.quizList.append(button);
+      });
+    }
+
+    function renderCards() {
+      els.cardsList.replaceChildren();
+
+      const quiz = getCurrentQuiz();
+      els.emptyState.hidden = Boolean(quiz);
+      els.cardCountTag.textContent = quiz ? `${quiz.cards.length} kartic` : "0 kartic";
+
+      if (!quiz) {
+        return;
+      }
+
+      quiz.cards.forEach((card, index) => {
+        const details = document.createElement("details");
+        details.className = "card-item";
+        details.open = index === 0;
+
+        const summary = document.createElement("summary");
+        const label = document.createElement("span");
+        label.textContent = `Kartica ${index + 1}`;
+        const summaryMuted = document.createElement("span");
+        summaryMuted.className = "card-summary-muted";
+        summaryMuted.textContent = card.front ? card.front : "Brez naslova";
+        summary.append(label, summaryMuted);
+
+        const grid = document.createElement("div");
+        grid.className = "card-grid";
+
+        const makeField = (labelText, value, tagName = "textarea", className = "") => {
+          const wrapper = document.createElement("div");
+          wrapper.className = `field${className ? ` ${className}` : ""}`;
+          const labelEl = document.createElement("label");
+          labelEl.textContent = labelText;
+          const input = document.createElement(tagName);
+          if (tagName === "textarea") {
+            input.value = value;
+          } else {
+            input.value = value;
+          }
+          wrapper.append(labelEl, input);
+          return { wrapper, input };
+        };
+
+        const numberField = document.createElement("div");
+        numberField.className = "field";
+        const numberLabel = document.createElement("label");
+        numberLabel.textContent = "Številka";
+        const numberInput = document.createElement("input");
+        numberInput.type = "number";
+        numberInput.value = card.number || index + 1;
+        numberInput.readOnly = true;
+        numberField.append(numberLabel, numberInput);
+
+        const front = makeField("Vprašanje", card.front, "textarea", "span-2");
+        const back = makeField("Odgovor", card.back, "textarea", "span-2");
+        const hint = makeField("Namig", card.hint, "textarea", "span-2");
+        const imageUrl = makeField("Povezava do slike", card.imageUrl, "input", "span-2");
+        imageUrl.input.type = "text";
+        const altText = makeField("Opis slike", card.altText, "textarea", "span-2");
+
+        grid.append(numberField, front.wrapper, back.wrapper, hint.wrapper, imageUrl.wrapper, altText.wrapper);
+
+        const actions = document.createElement("div");
+        actions.className = "card-actions";
+
+        const leftActions = document.createElement("div");
+        leftActions.className = "mini-actions";
+
+        const duplicateButton = document.createElement("button");
+        duplicateButton.type = "button";
+        duplicateButton.className = "secondary";
+        duplicateButton.textContent = "Podvoji";
+        duplicateButton.addEventListener("click", () => {
+          quiz.cards.splice(index + 1, 0, {
+            number: index + 2,
+            front: card.front,
+            back: card.back,
+            hint: card.hint,
+            imageUrl: card.imageUrl,
+            altText: card.altText
+          });
+          renumberCards(quiz.cards);
+          setDirty(true);
+          render();
+        });
+
+        const deleteButton = document.createElement("button");
+        deleteButton.type = "button";
+        deleteButton.className = "danger";
+        deleteButton.textContent = "Izbriši";
+        deleteButton.addEventListener("click", () => {
+          if (quiz.cards.length === 1) {
+            quiz.cards = [{ number: 1, front: "", back: "", hint: "", imageUrl: "", altText: "" }];
+          } else {
+            quiz.cards.splice(index, 1);
+          }
+          renumberCards(quiz.cards);
+          setDirty(true);
+          render();
+        });
+
+        leftActions.append(duplicateButton, deleteButton);
+
+        const hintText = document.createElement("span");
+        hintText.className = "muted";
+        hintText.textContent = "Kartice se samodejno preštevilčijo ob shranjevanju.";
+
+        actions.append(leftActions, hintText);
+
+        details.append(summary, grid, actions);
+        els.cardsList.append(details);
+
+        const bindDirty = () => {
+          card.front = front.input.value;
+          card.back = back.input.value;
+          card.hint = hint.input.value;
+          card.imageUrl = imageUrl.input.value;
+          card.altText = altText.input.value;
+          summaryMuted.textContent = card.front ? card.front : "Brez naslova";
+          setDirty(true);
+        };
+
+        front.input.addEventListener("input", bindDirty);
+        back.input.addEventListener("input", bindDirty);
+        hint.input.addEventListener("input", bindDirty);
+        imageUrl.input.addEventListener("input", bindDirty);
+        altText.input.addEventListener("input", bindDirty);
+      });
+    }
+
+    function renumberCards(cards) {
+      cards.forEach((card, index) => {
+        card.number = index + 1;
+      });
+    }
+
+    function render() {
+      const quiz = getCurrentQuiz();
+      els.quizName.value = quiz?.name || "";
+      els.quizPath.value = quiz?.path || "";
+      els.quizDescription.value = quiz?.description || "";
+      updateWorkspaceTag();
+      updateQuizList();
+      renderCards();
+      document.title = quiz ? `Urejanje: ${quiz.name}` : "Urejanje vprašalnikov";
+    }
+
+    async function loadManifest() {
+      state.loading = true;
+      try {
+        const rawManifest = await readJson("manifest.json");
+        state.manifest = Array.isArray(rawManifest)
+          ? { quizzes: normalizeManifest(rawManifest) }
+          : { quizzes: normalizeManifest(rawManifest) };
+        state.quizzes = state.manifest.quizzes.slice();
+        updateWorkspaceTag();
+        setStatus("Manifest naložen.");
+      } catch (error) {
+        console.error(error);
+        state.manifest = { quizzes: [] };
+        state.quizzes = [];
+        setStatus("Manifest ni bil najden.");
+      } finally {
+        state.loading = false;
+      }
+    }
+
+    async function loadQuizByIndex(index) {
+      const quizMeta = state.quizzes[index];
+      if (!quizMeta) {
+        return;
+      }
+
+      const cards = normalizeCards(await readJson(quizMeta.path));
+      const quiz = {
+        path: quizMeta.path,
+        name: quizMeta.name,
+        description: quizMeta.description,
+        cards: cards.length ? cards : [{ number: 1, front: "", back: "", hint: "", imageUrl: "", altText: "" }]
+      };
+
+      state.selectedIndex = index;
+      setCurrentQuiz(quiz, quizMeta.path);
+      setStatus(`Odprt je ${quiz.name}.`);
+    }
+
+    async function loadFirstQuiz() {
+      if (!state.quizzes.length) {
+        setCurrentQuiz(createBlankQuiz());
+        state.selectedIndex = -1;
+        setStatus("Ustvari nov vprašalnik.");
+        return;
+      }
+
+      await loadQuizByIndex(0);
+    }
+
+    async function openWorkspace() {
+      if (!window.showDirectoryPicker) {
+        setStatus("Ta brskalnik ne podpira neposrednega zapisovanja v mapo.");
+        return;
+      }
+
+      state.workspaceHandle = await window.showDirectoryPicker({ mode: "readwrite" });
+      await loadManifest();
+      await loadFirstQuiz();
+      render();
+      setStatus("Mapa projekta je odprta.");
+    }
+
+    function createNewQuiz() {
+      if (!confirmDiscard()) {
+        return;
+      }
+
+      const quiz = createBlankQuiz();
+      setCurrentQuiz(quiz);
+      state.selectedIndex = -1;
+      setStatus("Nov vprašalnik je pripravljen.");
+      render();
+    }
+
+    async function saveCurrentQuiz() {
+      const quiz = getCurrentQuiz();
+      if (!quiz) {
+        setStatus("Ni izbranega vprašalnika za shranjevanje.");
+        return;
+      }
+
+      updateCurrentQuizFromInputs();
+      renumberCards(quiz.cards);
+
+      const cleanedQuiz = {
+        path: quiz.path.trim(),
+        name: quiz.name.trim(),
+        description: quiz.description.trim()
+      };
+
+      if (!cleanedQuiz.path) {
+        setStatus("Pot datoteke ne sme biti prazna.");
+        return;
+      }
+
+      if (!cleanedQuiz.name) {
+        setStatus("Ime vprašalnika ne sme biti prazno.");
+        return;
+      }
+
+      const manifestQuiz = {
+        path: cleanedQuiz.path,
+        name: cleanedQuiz.name,
+        description: cleanedQuiz.description
+      };
+
+      const cardsToSave = serializeCards(quiz.cards);
+
+      const existingIndex = state.manifest.quizzes.findIndex((item) => item.path === state.sourcePath || item.path === cleanedQuiz.path);
+      if (existingIndex >= 0) {
+        state.manifest.quizzes[existingIndex] = manifestQuiz;
+      } else {
+        state.manifest.quizzes.push(manifestQuiz);
+      }
+
+      await saveJson("manifest.json", state.manifest);
+      await saveJson(cleanedQuiz.path, cardsToSave);
+
+      state.quizzes = state.manifest.quizzes.slice();
+      state.selectedIndex = state.quizzes.findIndex((item) => item.path === cleanedQuiz.path);
+      state.sourcePath = cleanedQuiz.path;
+      setDirty(false);
+      updateWorkspaceTag();
+      render();
+      setStatus(state.workspaceHandle ? "Spremembe so shranjene v datoteke." : "Datoteki sta izvoženi za ročno shranjevanje.");
+    }
+
+    async function reloadAll() {
+      if (!confirmDiscard()) {
+        return;
+      }
+
+      await loadManifest();
+      await loadFirstQuiz();
+      render();
+      setStatus("Osveženo.");
+    }
+
+    function bindQuizMetaInputs() {
+      const markDirty = () => {
+        updateCurrentQuizFromInputs();
+        setDirty(true);
+        updateQuizList();
+      };
+
+      els.quizName.addEventListener("input", markDirty);
+      els.quizPath.addEventListener("input", markDirty);
+      els.quizDescription.addEventListener("input", markDirty);
+    }
+
+    window.addEventListener("beforeunload", (event) => {
+      if (!state.dirty) {
+        return;
+      }
+
+      event.preventDefault();
+      event.returnValue = "";
+    });
+
+    els.openWorkspaceButton.addEventListener("click", () => {
+      openWorkspace().catch((error) => {
+        console.error(error);
+        setStatus(error.message);
+      });
+    });
+
+    els.reloadButton.addEventListener("click", () => {
+      reloadAll().catch((error) => {
+        console.error(error);
+        setStatus(error.message);
+      });
+    });
+
+    els.newQuizButton.addEventListener("click", createNewQuiz);
+
+    els.saveButton.addEventListener("click", () => {
+      saveCurrentQuiz().catch((error) => {
+        console.error(error);
+        setStatus(error.message);
+      });
+    });
+
+    els.addCardButton.addEventListener("click", () => {
+      const quiz = getCurrentQuiz();
+      if (!quiz) {
+        return;
+      }
+
+      updateCurrentQuizFromInputs();
+      quiz.cards.push({ number: quiz.cards.length + 1, front: "", back: "", hint: "", imageUrl: "", altText: "" });
+      setDirty(true);
+      render();
+    });
+
+    bindQuizMetaInputs();
+
+    (async () => {
+      await loadManifest();
+      await loadFirstQuiz();
+      render();
+      setStatus("Manifest pripravljen. Izberi vprašalnik.");
+    })().catch((error) => {
+      console.error(error);
+      setStatus(error.message);
+    });
+  </script>
 </body>
 </html>
