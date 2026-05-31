@@ -9,6 +9,11 @@
       "path": "data/geografija2.json",
       "name": "Geografija – komplet 2",
       "description": "Enak komplet vprašanj kot komplet 1, uporaben kot ločen vnos v manifestu."
+    },
+    {
+      "path": "data/matematika.json",
+      "name": "Matematika",
+      "description": "Snov matematika"
     }
   ]
 }
