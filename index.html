@@ -68,11 +68,18 @@
       overflow: auto;
     }
 
-    .nav-fab {
+    .nav-links {
       position: fixed;
       top: 18px;
       right: 18px;
       z-index: 50;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .nav-fab {
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -1033,7 +1040,9 @@
   </style>
 </head>
 <body>
-  <a class="nav-fab" id="notesLink" href="notes.html">Zapiski</a>
+  <div class="nav-links">
+    <a class="nav-fab" id="notesLink" href="notes.html">Zapiski</a>
+  </div>
   <main class="shell">
     <aside class="panel">
       <div>

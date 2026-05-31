@@ -37,8 +37,18 @@
       padding: 18px;
     }
 
-    .nav-fab {
+    .nav-links {
       position: fixed;
+      top: 18px;
+      right: 18px;
+      z-index: 50;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .nav-fab {
       top: 18px;
       right: 18px;
       z-index: 50;
@@ -205,7 +215,9 @@
   </style>
 </head>
 <body>
-  <a class="nav-fab" id="indexLink" href="index.html">Kartice</a>
+  <div class="nav-links">
+    <a class="nav-fab" id="indexLink" href="index.html">Kartice</a>
+  </div>
 
   <main class="shell">
     <section class="hero">
