@@ -46,5 +46,35 @@
     "front": "Katera kislina je v limoni in papriki?",
     "back": "Askorbinska kislina (vitamin c)",
     "hint": "Kisline in baze"
+  },
+  {
+    "number": 9,
+    "front": "Kateri kislini pripada formula HCOOH?",
+    "back": "Mravljični oziroma metanojski kislini.",
+    "hint": "Kisline in baze"
+  },
+  {
+    "number": 10,
+    "front": "Kateri kislini pripada formula H₃PO₄?",
+    "back": "Fosforjevi kislini",
+    "hint": "Kisline in baze"
+  },
+  {
+    "number": 11,
+    "front": "Kateri kislini pripada formula CH₃COOH?",
+    "back": "Ocetni oziroma etanojski kislini.",
+    "hint": "Kisline in baze"
+  },
+  {
+    "number": 12,
+    "front": "Kateri kislini pripada formula HCl?",
+    "back": "Klorovodikovi kislini.",
+    "hint": "Kisline in baze"
+  },
+  {
+    "number": 13,
+    "front": "Kateri kislini pripada formula H₂SO₄?",
+    "back": "Žveplovi kislini.",
+    "hint": "Kisline in baze"
   }
 ]
