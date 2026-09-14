@@ -112,5 +112,41 @@
     "front": "Kakšna je kemiska formula za natrijev hidroksid?",
     "back": "NaOH",
     "hint": "Kisline in baze"
+  },
+  {
+    "number": 20,
+    "front": "V katero barvo se lakmusov papir obarva v kislini?",
+    "back": "Rdeče",
+    "hint": "Kisline in baze"
+  },
+  {
+    "number": 21,
+    "front": "V katero barvo se lakmusov papir obarva v bazi?",
+    "back": "Modro",
+    "hint": "Kisline in baze"
+  },
+  {
+    "number": 22,
+    "front": "V katero barvo se kislina obarva če stopi v stik za fenolftaleinom?",
+    "back": "Ostane iste barve",
+    "hint": "Kisline in baze"
+  },
+  {
+    "number": 23,
+    "front": "V katero barvo se baza obarva če stopi v stik za fenolftaleinom?",
+    "back": "Vijolično",
+    "hint": "Kisline in baze"
+  },
+  {
+    "number": 24,
+    "front": "V katero barvo se baza obarva če stopi v stik za metibranžem?",
+    "back": "Rumena",
+    "hint": "Kisline in baze"
+  },
+  {
+    "number": 25,
+    "front": "V katero barvo se kislina obarva če stopi v stik za metibranžem?",
+    "back": "Rdeče",
+    "hint": "Kisline in baze"
   }
 ]
