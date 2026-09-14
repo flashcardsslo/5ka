@@ -76,5 +76,41 @@
     "front": "Kateri kislini pripada formula H₂SO₄?",
     "back": "Žveplovi kislini.",
     "hint": "Kisline in baze"
+  },
+  {
+    "number": 14,
+    "front": "Katera baza je v barvi za lase?",
+    "back": "Amonijak",
+    "hint": "Kisline in baze"
+  },
+  {
+    "number": 15,
+    "front": "Kakšna je kemiska formula za amonijak?",
+    "back": "NH₃",
+    "hint": "Kisline in baze"
+  },
+  {
+    "number": 16,
+    "front": "Katera baza je v gašenem apnu?",
+    "back": "Kaljcijev hidroksid",
+    "hint": "Kisline in baze"
+  },
+  {
+    "number": 17,
+    "front": "Kakšna je kemiska formula za kaljcijev hidroksid?",
+    "back": "Ca(OH)₂",
+    "hint": "Kisline in baze"
+  },
+  {
+    "number": 18,
+    "front": "Katera baza je v varikini (čistilo)?",
+    "back": "Natrijev hidroksid",
+    "hint": "Kisline in baze"
+  },
+  {
+    "number": 19,
+    "front": "Kakšna je kemiska formula za natrijev hidroksid?",
+    "back": "NaOH",
+    "hint": "Kisline in baze"
   }
 ]
