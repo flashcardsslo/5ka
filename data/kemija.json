@@ -16,5 +16,35 @@
     "front": "Katera kislina je v kisu?",
     "back": "Ocetna oziroma etanojska kislina",
     "hint": "Kisline in baze"
+  },
+  {
+    "number": 4,
+    "front": "Katera kislina je v mlečnih izdelkih in v mišičah?",
+    "back": "Mlečna kislina",
+    "hint": "Kisline in baze"
+  },
+  {
+    "number": 5,
+    "front": "Katera kislina je v želodcu?",
+    "back": "Klorovodikova kislina",
+    "hint": "Kisline in baze"
+  },
+  {
+    "number": 6,
+    "front": "Katera kislina je v akumolatorju?",
+    "back": "Žveplova kislina",
+    "hint": "Kisline in baze"
+  },
+  {
+    "number": 7,
+    "front": "Katera kislina je v koprivah in mravljah?",
+    "back": "Mravljična oziroma metanojska kislina",
+    "hint": "Kisline in baze"
+  },
+  {
+    "number": 8,
+    "front": "Katera kislina je v limoni in papriki?",
+    "back": "Askorbinska kislina (vitamin c)",
+    "hint": "Kisline in baze"
   }
 ]
