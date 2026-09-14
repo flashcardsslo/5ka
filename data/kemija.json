@@ -1,0 +1,20 @@
+[
+  {
+    "number": 1,
+    "front": "Katera kislina je v kokakoli?",
+    "back": "Fosforjeva kislina",
+    "hint": "Kisline in baze"
+  },
+  {
+    "number": 2,
+    "front": "Katera kislina je v citursih?",
+    "back": "Citronska kislina",
+    "hint": "Kisline in baze"
+  },
+  {
+    "number": 3,
+    "front": "Katera kislina je v kisu?",
+    "back": "Ocetna oziroma etanojska kislina",
+    "hint": ""
+  }
+]

@@ -6,9 +6,9 @@
       "description": "Vprašanja o Južni Ameriki, prebivalstvu in geografskih posebnostih."
     },
     {
-      "path": "data/matematika.json",
-      "name": "Matematika",
-      "description": "Snov matematika"
+      "path": "data/kemija.json",
+      "name": "Kemija",
+      "description": "kisline in baze"
     }
   ]
 }
