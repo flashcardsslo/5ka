@@ -115,38 +115,68 @@
   },
   {
     "number": 20,
-    "front": "V katero barvo se lakmusov papir obarva v kislini?",
-    "back": "Rdeče",
+    "front": "Kaj merimo s pH lestvico?",
+    "back": "Kako kisla oziroma bazična je neka raztopina snovi.",
     "hint": "Kisline in baze"
   },
   {
     "number": 21,
-    "front": "V katero barvo se lakmusov papir obarva v bazi?",
-    "back": "Modro",
+    "front": "Če je Ph od 0-7 je raztopina?",
+    "back": "Kisla",
     "hint": "Kisline in baze"
   },
   {
     "number": 22,
-    "front": "V katero barvo se kislina obarva če stopi v stik za fenolftaleinom?",
-    "back": "Ostane iste barve",
+    "front": "Če je Ph od 7-14 je raztopina?",
+    "back": "Bazična",
     "hint": "Kisline in baze"
   },
   {
     "number": 23,
-    "front": "V katero barvo se baza obarva če stopi v stik za fenolftaleinom?",
-    "back": "Vijolično",
+    "front": "Če je Ph enak 7 je raztopina?",
+    "back": "Nevtralna",
     "hint": "Kisline in baze"
   },
   {
     "number": 24,
-    "front": "V katero barvo se baza obarva če stopi v stik za metibranžem?",
-    "back": "Rumena",
+    "front": "Kaj so kisline?",
+    "back": "Kisline so snovi, ki oddajajo vodikove ione = protone",
     "hint": "Kisline in baze"
   },
   {
     "number": 25,
-    "front": "V katero barvo se kislina obarva če stopi v stik za metibranžem?",
-    "back": "Rdeče",
+    "front": "Kaj je oksonijev ion?",
+    "back": "H₃O",
+    "hint": "Kisline in baze"
+  },
+  {
+    "number": 26,
+    "front": "Kaj so baze?",
+    "back": "Baze so snovi, ki sprejemajo vodikove ione = protone",
+    "hint": "Kisline in baze"
+  },
+  {
+    "number": 27,
+    "front": "Kaj je OH?",
+    "back": "Hidroksidni ion",
+    "hint": "Kisline in baze"
+  },
+  {
+    "number": 28,
+    "front": "Kaj je H₃O?",
+    "back": "Oksonijev ion",
+    "hint": "Kisline in baze"
+  },
+  {
+    "number": 29,
+    "front": "Kaj je hidroksidni ion?",
+    "back": "OH",
+    "hint": "Kisline in baze"
+  },
+  {
+    "number": 30,
+    "front": "Kaj so indikatorji?",
+    "back": "Indikatorji so barvila, ki sprejemajo barvo v odvisnosti od kislisti oziroma bazičnosti raztopin.",
     "hint": "Kisline in baze"
   }
 ]
